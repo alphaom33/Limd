@@ -5,6 +5,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "ast.h"
+#include "interpreter.h"
 
 std::string readFile(std::string name);
 
@@ -25,6 +26,9 @@ int main()
     for (ASTN *a : parser->Parse()) {
         std::cout << a << "\n";
     }
+
+    Interpreter *interpreter = new Interpreter(parser->Parse());
+    interpreter->Interpret();
 }
 
 std::string readFile(std::string name)

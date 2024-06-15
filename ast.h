@@ -44,7 +44,7 @@ static inline std::ostream &operator<<(std::ostream &o, ASTN *e)
         o << a;
     }
     break;
-    case Int:
+    case IntImmediate:
         IntN *a = static_cast<IntN *>(e);
         o << a;
         break;

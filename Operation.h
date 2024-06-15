@@ -6,7 +6,7 @@
 #define OPERATION_DEF_LIST(E) \
     E(FuncCall, 0x1) \
     E(VarName, 0x2) \
-    E(Int, 0x3)
+    E(IntImmediate, 0x3)
 
 enum Operation
 {

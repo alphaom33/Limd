@@ -46,7 +46,7 @@ std::vector<ASTN *> Parser::Parse()
             if (!toParse[current]->value.contains("."))
             {
                 out.push_back(new IntN{
-                    Int,
+                    IntImmediate,
                     std::stoi(toParse[current]->value, 0, 10)});
             }
         }
