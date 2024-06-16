@@ -61,6 +61,11 @@ std::vector<ASTN *> Parser::Parse()
                 Unevaluated,
                 toParse[current]->value});
             break;
+        case CharList:
+            out.push_back(new StringN{
+                StringImmediate,
+                toParse[current]->value});
+            break;
         }
     }
     return out;

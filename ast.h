@@ -22,6 +22,11 @@ struct IntN : public ASTN
     int value;
 };
 
+struct StringN : public ASTN
+{
+    std::string value;
+};
+
 struct UnevaluatedN : public ASTN
 {
     std::string value;
@@ -31,6 +36,7 @@ static inline std::ostream &operator<<(std::ostream &o, ASTN *e);
 static inline std::ostream &operator<<(std::ostream &o, VarNameN *e);
 static inline std::ostream &operator<<(std::ostream &o, FuncCallN *e);
 static inline std::ostream &operator<<(std::ostream &o, IntN *e);
+static inline std::ostream &operator<<(std::ostream &o, StringN *e);
 static inline std::ostream &operator<<(std::ostream &o, UnevaluatedN *e);
 
 static inline std::ostream &operator<<(std::ostream &o, ASTN *e)
@@ -62,6 +68,12 @@ static inline std::ostream &operator<<(std::ostream &o, ASTN *e)
         o << a;
     }
     break;
+    case StringImmediate:
+    {
+        StringN *a = static_cast<StringN *>(e);
+        o << a;
+    }
+    break;
     }
     return o << "}";
 }
@@ -90,6 +102,11 @@ static inline std::ostream &operator<<(std::ostream &o, FuncCallN *e)
 static inline std::ostream &operator<<(std::ostream &o, IntN *e)
 {
     return o << ", " << e->value;
+}
+
+static inline std::ostream &operator<<(std::ostream &o, StringN *e)
+{
+    return o << ", \"" << e->value << "\"";
 }
 
 static inline std::ostream &operator<<(std::ostream &o, UnevaluatedN *e)

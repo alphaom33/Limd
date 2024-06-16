@@ -7,7 +7,8 @@
     E(FuncCall, 0x1)          \
     E(VarName, 0x2)           \
     E(IntImmediate, 0x3)      \
-    E(Unevaluated, 0x4)
+    E(StringImmediate, 0x4)      \
+    E(Unevaluated, 0x5)
 
 enum Operation
 {

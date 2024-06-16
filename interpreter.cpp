@@ -45,11 +45,15 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
 
         return function->body(currentScope, params);
     }
-    break;
     case Unevaluated:
         return new StringT{
             String,
             ((UnevaluatedN *)toEvaluate)->value
+        };
+    case StringImmediate:
+        return new StringT{
+            String,
+            ((StringN *)toEvaluate)->value
         };
     }
     return nullptr;

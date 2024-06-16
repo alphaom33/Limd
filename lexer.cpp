@@ -21,11 +21,21 @@ std::vector<Lexer::Token *> *Lexer::lex()
             tokens->push_back(new Token(Comma, ","));
             break;
         case '`':
-            if (toLex[++current] == '(') {
-            } else {
+            if (toLex[++current] == '(')
+            {
+            }
+            else
+            {
                 tokens->push_back(new Token(BackTick, lexIdentifier()->value));
             }
             break;
+        case '"':
+        {
+            int count = toLex.substr(++current, toLex.size() - 1).find('"');
+            tokens->push_back(new Token(CharList, toLex.substr(current, count)));
+            current += count;
+        }
+        break;
         default:
         {
             if (isdigit(toLex[current]))
@@ -60,8 +70,8 @@ Lexer::Token *Lexer::lexNumber()
     return lexDecimal();
 }
 
-class ExceptionNotImplemented : std::exception {
-
+class ExceptionNotImplemented : std::exception
+{
 };
 
 Lexer::Token *Lexer::lexBinary()
@@ -77,7 +87,8 @@ Lexer::Token *Lexer::lexHex()
 Lexer::Token *Lexer::lexDecimal()
 {
     std::string number = std::string() + toLex[current];
-    while (isdigit(toLex[current + 1]) || toLex[current + 1] == '.') {
+    while (isdigit(toLex[current + 1]) || toLex[current + 1] == '.')
+    {
         number.push_back(toLex[current + 1]);
         current++;
     }
@@ -87,7 +98,8 @@ Lexer::Token *Lexer::lexDecimal()
 Lexer::Token *Lexer::lexIdentifier()
 {
     std::string identifier = std::string() + toLex[current];
-    while (!notIdentifierAble.contains(toLex[current + 1]) && current < toLex.length()) {
+    while (!notIdentifierAble.contains(toLex[current + 1]) && current < toLex.length())
+    {
         identifier.push_back(toLex[current + 1]);
         current++;
     }

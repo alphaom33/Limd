@@ -8,6 +8,7 @@
     E(RightParenthesis, 0x2) \
     E(Comma, 0x3)            \
     E(Number, 0x4)           \
+    E(CharList, 0x5)         \
     E(Identifier, 0x6)       \
     E(BackTick, 0x7)
 
