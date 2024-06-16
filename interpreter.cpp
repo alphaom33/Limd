@@ -55,6 +55,16 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
             String,
             ((StringN *)toEvaluate)->value
         };
+    case ListImmediate:
+        Interpreter *tmp = new Interpreter(((ListN *)toEvaluate)->values);
+        auto out = std::vector<TypeT *>();
+        for (ASTN *a : tmp->toInterpret) {
+            out.push_back(tmp->Evaluate(a, currentScope));
+        }
+        return new ListT{
+            List,
+            out
+        };
     }
     return nullptr;
 }

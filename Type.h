@@ -6,7 +6,8 @@
 #define TYPE_DEF_LIST(E) \
     E(Function, 0x1)     \
     E(Int, 0x2)          \
-    E(String, 0x3)
+    E(String, 0x3)       \
+    E(List, 0x4)
 
 enum Type
 {

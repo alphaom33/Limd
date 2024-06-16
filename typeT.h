@@ -24,6 +24,10 @@ struct StringT : public TypeT {
     std::string value;
 };
 
+struct ListT : public TypeT {
+    std::vector<TypeT *> values;
+};
+
 static inline std::ostream &operator<<(std::ostream &o, TypeT *e) {
     o << "{ " << e->type << ", ";
     switch (e->type)
@@ -34,6 +38,13 @@ static inline std::ostream &operator<<(std::ostream &o, TypeT *e) {
     case String:
         o << ((StringT *)e)->value;
         break; 
+    case List:
+        o << "[ ";
+        for (TypeT *t : ((ListT *)e)->values) {
+            o << t << ", ";
+        }
+        o << "]";
+        break;
     }
     return o << " }";
 }

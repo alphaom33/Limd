@@ -23,7 +23,7 @@ std::vector<ASTN *> Parser::Parse()
                 auto tokens = std::vector<Lexer::Token *>();
                 for (current++; toParse[current]->character != Comma && toParse[current]->character != RightParenthesis; current++)
                 {
-                    if (toParse[current]->character == LeftParenthesis)
+                    if (toParse[current]->character == LeftParenthesis || toParse[current]->character == BackTickList)
                     {
                         auto a = countParenthesis();
                         tokens.insert(tokens.end(), a.begin(), a.end());
@@ -66,6 +66,27 @@ std::vector<ASTN *> Parser::Parse()
                 StringImmediate,
                 toParse[current]->value});
             break;
+        case BackTickList:
+        {
+            auto a = countParenthesis();
+            for (Lexer::Token *t : a)
+            {
+                std::cout << t->character;
+            }
+            std::cout << "\n";
+            // auto tokens = std::vector<Lexer::Token *>();
+            // for (current++; current < toParse.size(); current++) {
+            //     if (toParse[current]->character == BackTickList) {
+            // std::cout << "\n";
+            //         tokens.insert(tokens.end(), a.begin(), a.end());
+            //     }
+            //     tokens.push_back(toParse[current]);
+            // }
+            out.push_back(new ListN{
+                ListImmediate,
+                (new Parser(std::vector(a.begin() + 1, a.end())))->Parse()});
+        }
+        break;
         }
     }
     return out;
@@ -81,6 +102,9 @@ std::vector<Lexer::Token *> Parser::countParenthesis()
     {
         switch (toParse[current]->character)
         {
+        case BackTickList:
+            numParens++;
+            break;
         case LeftParenthesis:
             numParens++;
             break;

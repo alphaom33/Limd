@@ -23,6 +23,7 @@ std::vector<Lexer::Token *> *Lexer::lex()
         case '`':
             if (toLex[++current] == '(')
             {
+                tokens->push_back(new Token{BackTickList, "("});
             }
             else
             {
