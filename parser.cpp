@@ -17,28 +17,21 @@ std::vector<ASTN *> Parser::Parse()
         {
             std::string name = toParse[++current]->value;
 
-            auto parameters = std::vector<ASTN *>();
-            while (toParse[current]->character != RightParenthesis)
-            {
-                auto tokens = std::vector<Lexer::Token *>();
-                for (current++; toParse[current]->character != Comma && toParse[current]->character != RightParenthesis; current++)
-                {
-                    if (toParse[current]->character == LeftParenthesis || toParse[current]->character == BackTickList)
-                    {
-                        auto a = countParenthesis();
-                        tokens.insert(tokens.end(), a.begin(), a.end());
-                    }
-                    tokens.push_back(toParse[current]);
-                }
-                parameters.push_back((new Parser(tokens))->Parse()[0]);
-            }
-
+            auto a = countParenthesis();
             out.push_back(new FuncCallN{
                 FuncCall,
                 new VarNameN{
                     VarName,
                     name},
-                parameters});
+                (new Parser(std::vector(a.begin() + 1, a.end())))->Parse()});
+        }
+        break;
+        case BackTickList:
+        {
+            auto a = countParenthesis();
+            out.push_back(new ListN{
+                ListImmediate,
+                (new Parser(std::vector(a.begin() + 1, a.end())))->Parse()});
         }
         break;
         case Number:
@@ -66,27 +59,6 @@ std::vector<ASTN *> Parser::Parse()
                 StringImmediate,
                 toParse[current]->value});
             break;
-        case BackTickList:
-        {
-            auto a = countParenthesis();
-            for (Lexer::Token *t : a)
-            {
-                std::cout << t->character;
-            }
-            std::cout << "\n";
-            // auto tokens = std::vector<Lexer::Token *>();
-            // for (current++; current < toParse.size(); current++) {
-            //     if (toParse[current]->character == BackTickList) {
-            // std::cout << "\n";
-            //         tokens.insert(tokens.end(), a.begin(), a.end());
-            //     }
-            //     tokens.push_back(toParse[current]);
-            // }
-            out.push_back(new ListN{
-                ListImmediate,
-                (new Parser(std::vector(a.begin() + 1, a.end())))->Parse()});
-        }
-        break;
         }
     }
     return out;
