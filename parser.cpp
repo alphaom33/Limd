@@ -56,19 +56,26 @@ std::vector<ASTN *> Parser::Parse()
                 VarName,
                 toParse[current]->value});
             break;
+        case BackTick:
+            out.push_back(new UnevaluatedN{
+                Unevaluated,
+                toParse[current]->value});
+            break;
         }
     }
     return out;
 }
 
-std::vector<Lexer::Token*> Parser::countParenthesis()
+std::vector<Lexer::Token *> Parser::countParenthesis()
 {
-    auto out = std::vector<Lexer::Token*>();
+    auto out = std::vector<Lexer::Token *>();
     out.push_back(toParse[current]);
 
     int numParens = 1;
-    for (current++; numParens > 0; current++) {
-        switch(toParse[current]->character) {
+    for (current++; numParens > 0; current++)
+    {
+        switch (toParse[current]->character)
+        {
         case LeftParenthesis:
             numParens++;
             break;

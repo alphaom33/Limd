@@ -3,9 +3,10 @@
 #include <iostream>
 #include <utility>
 
-#define TYPE_DEF_LIST(E)    \
-    E(Function, 0x1) \
-    E(Int, 0x2)
+#define TYPE_DEF_LIST(E) \
+    E(Function, 0x1)     \
+    E(Int, 0x2)          \
+    E(String, 0x3)
 
 enum Type
 {
@@ -18,7 +19,7 @@ static inline std::ostream &operator<<(std::ostream &o, Type e)
     switch (e)
     {
 #define TYPE_DEF_ENUM_CASE(name, value) \
-    case name:                           \
+    case name:                          \
         return o << #name;
         TYPE_DEF_LIST(TYPE_DEF_ENUM_CASE);
 

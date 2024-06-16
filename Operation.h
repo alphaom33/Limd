@@ -4,9 +4,10 @@
 #include <utility>
 
 #define OPERATION_DEF_LIST(E) \
-    E(FuncCall, 0x1) \
-    E(VarName, 0x2) \
-    E(IntImmediate, 0x3)
+    E(FuncCall, 0x1)          \
+    E(VarName, 0x2)           \
+    E(IntImmediate, 0x3)      \
+    E(Unevaluated, 0x4)
 
 enum Operation
 {

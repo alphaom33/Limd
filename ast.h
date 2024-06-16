@@ -22,10 +22,16 @@ struct IntN : public ASTN
     int value;
 };
 
+struct UnevaluatedN : public ASTN
+{
+    std::string value;
+};
+
 static inline std::ostream &operator<<(std::ostream &o, ASTN *e);
 static inline std::ostream &operator<<(std::ostream &o, VarNameN *e);
 static inline std::ostream &operator<<(std::ostream &o, FuncCallN *e);
 static inline std::ostream &operator<<(std::ostream &o, IntN *e);
+static inline std::ostream &operator<<(std::ostream &o, UnevaluatedN *e);
 
 static inline std::ostream &operator<<(std::ostream &o, ASTN *e)
 {
@@ -45,9 +51,17 @@ static inline std::ostream &operator<<(std::ostream &o, ASTN *e)
     }
     break;
     case IntImmediate:
+    {
         IntN *a = static_cast<IntN *>(e);
         o << a;
-        break;
+    }
+    break;
+    case Unevaluated:
+    {
+        UnevaluatedN *a = static_cast<UnevaluatedN *>(e);
+        o << a;
+    }
+    break;
     }
     return o << "}";
 }
@@ -74,6 +88,11 @@ static inline std::ostream &operator<<(std::ostream &o, FuncCallN *e)
 }
 
 static inline std::ostream &operator<<(std::ostream &o, IntN *e)
+{
+    return o << ", " << e->value;
+}
+
+static inline std::ostream &operator<<(std::ostream &o, UnevaluatedN *e)
 {
     return o << ", " << e->value;
 }

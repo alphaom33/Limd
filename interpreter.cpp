@@ -6,50 +6,51 @@ Interpreter::Interpreter(std::vector<ASTN *> toInterpret)
     this->toInterpret = toInterpret;
 }
 
-void Interpreter::Interpret()
+Scope Interpreter::Interpret()
 {
     Scope global = Scope{
         new Scope{
             nullptr,
-            initialScope
-        },
+            initialScope},
         std::map<std::string, TypeT *>()};
     for (current = 0; current < toInterpret.size(); current++)
     {
-        switch (toInterpret[current]->op)
-        {
-        case FuncCall:
-        {
-            Evaluate(toInterpret[current], &global);
-        }
-        break;
-        }
+        Evaluate(toInterpret[current], &global);
     }
+    return global;
 }
 
-TypeT *Interpreter::Evaluate(ASTN *yep, Scope *currentScope)
+TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
 {
-    switch (yep->op)
+    switch (toEvaluate->op)
     {
     case VarName:
-        return GetVar(currentScope, ((VarNameN *)yep)->name);
+        return GetVar(currentScope, ((VarNameN *)toEvaluate)->name);
     case IntImmediate:
         return new IntT{
             Int,
-            ((IntN *)yep)->value
-            };
+            ((IntN *)toEvaluate)->value};
     case Function:
-            FuncCallN *a = (FuncCallN *)yep;
-            auto params = std::vector<TypeT *>();
-            for (ASTN *a : a->parameters) {
-                params.push_back(Evaluate(a, currentScope));
-            }
+    {
+        FuncCallN *called = (FuncCallN *)toEvaluate;
+        std::string name = called->name->name;
 
-            VarNameN *b = (VarNameN *)a->name;
-            FuncT * c = (FuncT *)initialScope[b->name];
+        auto params = std::vector<TypeT *>();
+        for (int i = 0; i < called->parameters.size(); i++)
+        {
+            params.push_back(Evaluate(called->parameters[i], currentScope));
+        }
 
-            return c->body(params);
-            break;
+        FuncT *function = (FuncT *)initialScope[name];
+
+        return function->body(currentScope, params);
+    }
+    break;
+    case Unevaluated:
+        return new StringT{
+            String,
+            ((UnevaluatedN *)toEvaluate)->value
+        };
     }
     return nullptr;
 }

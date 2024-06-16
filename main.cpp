@@ -28,7 +28,9 @@ int main()
     }
 
     Interpreter *interpreter = new Interpreter(parser->Parse());
-    interpreter->Interpret();
+    for (std::pair p : interpreter->Interpret().vars) {
+        std::cout << p.first << (TypeT*)p.second << ", ";
+    }
 }
 
 std::string readFile(std::string name)

@@ -1,19 +1,12 @@
 #include "ast.h"
-#include "TypeT.h"
-#include "map"
+#include "typeT.h"
 #pragma once
 class Interpreter
 {
 public:
     Interpreter(std::vector<ASTN *> toInterpret);
 
-    typedef struct Scope
-    {
-        Scope *parent;
-        std::map<std::string, TypeT *> vars;
-    } Scope;
-
-    void Interpret();
+    Scope Interpret();
     TypeT *Evaluate(ASTN *yep, Scope *current);
 
 private:

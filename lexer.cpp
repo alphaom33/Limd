@@ -20,6 +20,12 @@ std::vector<Lexer::Token *> *Lexer::lex()
         case ',':
             tokens->push_back(new Token(Comma, ","));
             break;
+        case '`':
+            if (toLex[++current] == '(') {
+            } else {
+                tokens->push_back(new Token(BackTick, lexIdentifier()->value));
+            }
+            break;
         default:
         {
             if (isdigit(toLex[current]))

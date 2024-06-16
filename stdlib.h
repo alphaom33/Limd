@@ -1,7 +1,7 @@
 #include "interpreter.h"
 #pragma once
 
-TypeT *Plus(std::vector<TypeT *> params)
+TypeT *Plus(Scope *current, std::vector<TypeT *> params)
 {
     int sum = 0;
     for (TypeT *t : params)
@@ -14,7 +14,7 @@ TypeT *Plus(std::vector<TypeT *> params)
         sum};
 }
 
-TypeT *Minus(std::vector<TypeT *> params)
+TypeT *Minus(Scope *current, std::vector<TypeT *> params)
 {
     int difference = ((IntT *)params[0])->value;
     for (int i = 1; i < params.size(); i++)
@@ -27,7 +27,7 @@ TypeT *Minus(std::vector<TypeT *> params)
         difference};
 }
 
-TypeT *Multiply(std::vector<TypeT *> params)
+TypeT *Multiply(Scope *current, std::vector<TypeT *> params)
 {
     int difference = ((IntT *)params[0])->value;
     for (int i = 1; i < params.size(); i++)
@@ -40,7 +40,7 @@ TypeT *Multiply(std::vector<TypeT *> params)
         difference};
 }
 
-TypeT *Divide(std::vector<TypeT *> params)
+TypeT *Divide(Scope *current, std::vector<TypeT *> params)
 {
     int difference = ((IntT *)params[0])->value;
     for (int i = 1; i < params.size(); i++)
@@ -51,6 +51,11 @@ TypeT *Divide(std::vector<TypeT *> params)
     return new IntT{
         Int,
         difference};
+}
+
+TypeT *Set(Scope *current, std::vector<TypeT *> params) {
+    current->vars[((StringT *)params[0])->value] = params[1];
+    return params[1];
 }
 
 std::map<std::string, TypeT *> initialScope = {
@@ -74,4 +79,9 @@ std::map<std::string, TypeT *> initialScope = {
         new FuncT{
             Function,
             Divide}),
+    std::pair<std::string, TypeT *>(
+        std::string("="),
+        new FuncT{
+            Function,
+            Set}),
             };
