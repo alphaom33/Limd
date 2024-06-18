@@ -8,7 +8,6 @@ TypeT *Plus(Scope *current, std::vector<TypeT *> params)
     {
         sum += ((IntT *)t)->value;
     }
-    std::cout << sum;
     return new IntT{
         Int,
         sum};
@@ -21,7 +20,6 @@ TypeT *Minus(Scope *current, std::vector<TypeT *> params)
     {
         difference -= ((IntT *)params[i])->value;
     }
-    std::cout << difference;
     return new IntT{
         Int,
         difference};
@@ -34,7 +32,6 @@ TypeT *Multiply(Scope *current, std::vector<TypeT *> params)
     {
         difference *= ((IntT *)params[i])->value;
     }
-    std::cout << difference;
     return new IntT{
         Int,
         difference};
@@ -47,15 +44,24 @@ TypeT *Divide(Scope *current, std::vector<TypeT *> params)
     {
         difference /= ((IntT *)params[i])->value;
     }
-    std::cout << difference;
     return new IntT{
         Int,
         difference};
 }
 
-TypeT *Set(Scope *current, std::vector<TypeT *> params) {
+TypeT *Set(Scope *current, std::vector<TypeT *> params)
+{
     current->vars[((StringT *)params[0])->value] = params[1];
     return params[1];
+}
+
+TypeT *Print(Scope *current, std::vector<TypeT *> params)
+{
+    for (TypeT *t : params)
+    {
+        std::cout << t;
+    }
+    return new TypeT{};
 }
 
 std::map<std::string, TypeT *> initialScope = {
@@ -84,4 +90,9 @@ std::map<std::string, TypeT *> initialScope = {
         new FuncT{
             Function,
             Set}),
-            };
+    std::pair<std::string, TypeT *>(
+        std::string("print"),
+        new FuncT{
+            Function,
+            Print}),
+};

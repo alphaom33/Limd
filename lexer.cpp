@@ -17,6 +17,12 @@ std::vector<Lexer::Token *> *Lexer::lex()
         case ')':
             tokens->push_back(new Token(RightParenthesis, ")"));
             break;
+        case '[':
+            tokens->push_back(new Token(LeftBracket, "["));
+            break;
+        case ']':
+            tokens->push_back(new Token(RightBracket, "]"));
+            break;
         case ',':
             tokens->push_back(new Token(Comma, ","));
             break;

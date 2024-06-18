@@ -6,18 +6,21 @@ Interpreter::Interpreter(std::vector<ASTN *> toInterpret)
     this->toInterpret = toInterpret;
 }
 
-Scope Interpreter::Interpret()
+Scope Interpreter::Interpret(Scope *global)
 {
-    Scope global = Scope{
-        new Scope{
-            nullptr,
-            initialScope},
-        std::map<std::string, TypeT *>()};
+    if (global == nullptr)
+    {
+        global = new Scope{
+            new Scope{
+                nullptr,
+                initialScope},
+            std::map<std::string, TypeT *>()};
+    }
     for (current = 0; current < toInterpret.size(); current++)
     {
-        Evaluate(toInterpret[current], &global);
+        Evaluate(toInterpret[current], global);
     }
-    return global;
+    return *global;
 }
 
 TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
@@ -30,6 +33,27 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
         return new IntT{
             Int,
             ((IntN *)toEvaluate)->value};
+    case Lambda:
+    {
+        LambdaN *lambda = (LambdaN *)toEvaluate;
+        return new FuncT{
+            Function,
+            [lambda](Scope *scope, std::vector<TypeT *> params)
+            {
+                auto paramNames = std::map<std::string, TypeT *>();
+                for (int i = 0; i < lambda->parameters.size() && i < params.size(); i++)
+                {
+                    paramNames[((VarNameN *)lambda->parameters[i])->name] = params[i];
+                }
+
+                Scope *current = new Scope{
+                    scope,
+                    paramNames};
+                TypeT *out = (new Interpreter(lambda->toRun))->Interpret(current).vars["return"];
+                free(current);
+                return out;
+            }};
+    }
     case Function:
     {
         FuncCallN *called = (FuncCallN *)toEvaluate;
@@ -41,33 +65,37 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
             params.push_back(Evaluate(called->parameters[i], currentScope));
         }
 
-        FuncT *function = (FuncT *)initialScope[name];
+        FuncT *function = (FuncT *)GetVar(currentScope, name);
 
-        return function->body(currentScope, params);
+        currentScope->vars["return"] = function->body(currentScope, params);
+        return currentScope->vars["return"];
     }
     case Unevaluated:
         return new StringT{
             String,
-            ((UnevaluatedN *)toEvaluate)->value
-        };
+            ((UnevaluatedN *)toEvaluate)->value};
     case StringImmediate:
         return new StringT{
             String,
-            ((StringN *)toEvaluate)->value
-        };
+            ((StringN *)toEvaluate)->value};
     case ListImmediate:
         Interpreter *tmp = new Interpreter(((ListN *)toEvaluate)->values);
         auto out = std::vector<TypeT *>();
-        for (ASTN *a : tmp->toInterpret) {
+        for (ASTN *a : tmp->toInterpret)
+        {
             out.push_back(tmp->Evaluate(a, currentScope));
         }
         return new ListT{
             List,
-            out
-        };
+            out};
     }
     return nullptr;
 }
+
+class VarNotFound : public std::exception
+{
+public:
+};
 
 TypeT *Interpreter::GetVar(Scope *current, std::string name)
 {
@@ -79,5 +107,6 @@ TypeT *Interpreter::GetVar(Scope *current, std::string name)
         }
         current = current->parent;
     }
-    return nullptr;
+    std::cout << "namy" << name;
+    throw VarNotFound();
 }

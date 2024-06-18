@@ -17,6 +17,12 @@ struct FuncCallN : public ASTN
     std::vector<ASTN *> parameters;
 };
 
+struct LambdaN : public ASTN
+{
+    std::vector<ASTN *> parameters;
+    std::vector<ASTN *> toRun;
+};
+
 struct IntN : public ASTN
 {
     int value;
@@ -44,6 +50,7 @@ static inline std::ostream &operator<<(std::ostream &o, IntN *e);
 static inline std::ostream &operator<<(std::ostream &o, StringN *e);
 static inline std::ostream &operator<<(std::ostream &o, ListN *e);
 static inline std::ostream &operator<<(std::ostream &o, UnevaluatedN *e);
+static inline std::ostream &operator<<(std::ostream &o, LambdaN *e);
 
 static inline std::ostream &operator<<(std::ostream &o, ASTN *e)
 {
@@ -86,6 +93,12 @@ static inline std::ostream &operator<<(std::ostream &o, ASTN *e)
         o << a;
     }
     break;
+    case Lambda:
+    {
+        LambdaN *a = static_cast<LambdaN *>(e);
+        o << a;
+    }
+    break;
     }
     return o << " }";
 }
@@ -108,7 +121,7 @@ static inline std::ostream &operator<<(std::ostream &o, FuncCallN *e)
     {
         o << a << ", ";
     }
-    return o << " ]";
+    return o << "]";
 }
 
 static inline std::ostream &operator<<(std::ostream &o, IntN *e)
@@ -135,4 +148,19 @@ static inline std::ostream &operator<<(std::ostream &o, ListN *e)
         o << a << ", ";
     }
     return o << " ]";
+}
+
+static inline std::ostream &operator<<(std::ostream &o, LambdaN *e)
+{
+    o << " [ ";
+    for (ASTN *a : e->parameters) {
+        o << a << ", ";
+    }
+    o << "], ";
+
+    o << "[ ";
+    for (ASTN *a : e->toRun) {
+        o << a << ", ";
+    }
+    return o << "]";
 }

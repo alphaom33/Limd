@@ -6,7 +6,7 @@ class Interpreter
 public:
     Interpreter(std::vector<ASTN *> toInterpret);
 
-    Scope Interpret();
+    Scope Interpret(Scope *current = nullptr);
     TypeT *Evaluate(ASTN *yep, Scope *current);
 
 private:

@@ -32,5 +32,5 @@ private:
 
     int current;
     std::string toLex;
-    std::string notIdentifierAble = " ,()";
+    std::string notIdentifierAble = " ,()[]";
 };

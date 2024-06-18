@@ -13,6 +13,22 @@ std::vector<ASTN *> Parser::Parse()
     {
         switch (toParse[current]->character)
         {
+        case LeftBracket:
+        {
+            auto parameters = std::vector<Lexer::Token *>();
+            for (current++; toParse[current]->character != RightBracket; current++)
+            {
+                parameters.push_back(toParse[current]);
+            }
+            
+            auto functions = countParenthesis();
+            out.push_back(new LambdaN{
+                Lambda,
+                (new Parser(parameters))->Parse(),
+                (new Parser(std::vector(functions.begin() + 2, functions.end())))->Parse()
+            });
+        }
+        break;
         case LeftParenthesis:
         {
             std::string name = toParse[++current]->value;
