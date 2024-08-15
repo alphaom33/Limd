@@ -153,7 +153,7 @@ TypeT *In(Scope* current, std::vector<TypeT *> params) {
 TypeT *Len(Scope *current, std::vector<TypeT *> params) {
     return new IntT{
         Int,
-        ((ListT *)params[0])->values.size()
+        (int)((ListT *)params[0])->values.size()
     };
 }
 
