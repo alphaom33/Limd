@@ -1,0 +1,10 @@
+(= `for, [list, function] (
+    (= `loop, [start, list, function] (
+        (function )
+        (println start)
+        (if (< start, 2), [] ((loop (+ start, 1), list, function)), [] ((pass )))
+    ))
+    (loop 0, list, function)
+))
+
+(for `(1, 2, 3), [] ((println "asdf")))

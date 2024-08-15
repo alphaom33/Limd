@@ -11,7 +11,7 @@ std::string readFile(std::string name);
 
 int main()
 {
-    std::string file = readFile("basic.limd");
+    std::string file = readFile("utils.limd");
 
     Lexer *lexer = new Lexer(file);
 
@@ -21,16 +21,21 @@ int main()
     }
 
     std::cout << "\n";
+    std::cout << "\n";
 
     Parser *parser = new Parser(*lexer->lex());
     for (ASTN *a : parser->Parse()) {
         std::cout << a << "\n";
     }
 
+    std::cout << "\n";
+
     Interpreter *interpreter = new Interpreter(parser->Parse());
     for (std::pair p : interpreter->Interpret().vars) {
         std::cout << p.first << (TypeT*)p.second << ", ";
     }
+
+    std::cout << "\n";
 }
 
 std::string readFile(std::string name)

@@ -1,6 +1,7 @@
 #include "Type.h"
 #include "functional"
 #include "map"
+
 #pragma once
 struct TypeT {
     Type type;
@@ -20,6 +21,10 @@ struct IntT : public TypeT {
     int value;
 };
 
+struct BoolT : public TypeT {
+    bool value;
+};
+
 struct StringT : public TypeT {
     std::string value;
 };
@@ -35,9 +40,12 @@ static inline std::ostream &operator<<(std::ostream &o, TypeT *e) {
     case Int:
         o << ((IntT *)e)->value;
         break;
+    case Bool:
+        o << ((BoolT *)e)->value;
+        break;
     case String:
         o << ((StringT *)e)->value;
-        break; 
+        break;
     case List:
         o << "[ ";
         for (TypeT *t : ((ListT *)e)->values) {

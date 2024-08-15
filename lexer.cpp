@@ -110,5 +110,6 @@ Lexer::Token *Lexer::lexIdentifier()
         identifier.push_back(toLex[current + 1]);
         current++;
     }
+
     return new Token(Identifier, identifier);
 }

@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "memory"
 
 Parser::Parser(std::vector<Lexer::Token *> toParse)
 {
@@ -21,11 +22,12 @@ std::vector<ASTN *> Parser::Parse()
                 parameters.push_back(toParse[current]);
             }
             
+            current++;
             auto functions = countParenthesis();
             out.push_back(new LambdaN{
                 Lambda,
                 (new Parser(parameters))->Parse(),
-                (new Parser(std::vector(functions.begin() + 2, functions.end())))->Parse()
+                (new Parser(std::vector(functions.begin() + 1, functions.end())))->Parse()
             });
         }
         break;
@@ -61,6 +63,14 @@ std::vector<ASTN *> Parser::Parse()
         }
         break;
         case Identifier:
+            if (toParse[current]->value == "true" || toParse[current]->value == "false") {
+                out.push_back(new BoolN{
+                    BoolImmediate,
+                    toParse[current]->value == "true"
+                });
+                break;
+            }
+
             out.push_back(new VarNameN{
                 VarName,
                 toParse[current]->value});

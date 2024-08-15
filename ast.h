@@ -28,6 +28,11 @@ struct IntN : public ASTN
     int value;
 };
 
+struct BoolN : public ASTN
+{
+    bool value;
+};
+
 struct StringN : public ASTN
 {
     std::string value;
@@ -47,6 +52,7 @@ static inline std::ostream &operator<<(std::ostream &o, ASTN *e);
 static inline std::ostream &operator<<(std::ostream &o, VarNameN *e);
 static inline std::ostream &operator<<(std::ostream &o, FuncCallN *e);
 static inline std::ostream &operator<<(std::ostream &o, IntN *e);
+static inline std::ostream &operator<<(std::ostream &o, BoolN *e);
 static inline std::ostream &operator<<(std::ostream &o, StringN *e);
 static inline std::ostream &operator<<(std::ostream &o, ListN *e);
 static inline std::ostream &operator<<(std::ostream &o, UnevaluatedN *e);
@@ -72,6 +78,12 @@ static inline std::ostream &operator<<(std::ostream &o, ASTN *e)
     case IntImmediate:
     {
         IntN *a = static_cast<IntN *>(e);
+        o << a;
+    }
+    break;
+    case BoolImmediate:
+    {
+        BoolN *a = static_cast<BoolN *>(e);
         o << a;
     }
     break;
@@ -127,6 +139,11 @@ static inline std::ostream &operator<<(std::ostream &o, FuncCallN *e)
 static inline std::ostream &operator<<(std::ostream &o, IntN *e)
 {
     return o << ", " << e->value;
+}
+
+static inline std::ostream &operator<<(std::ostream &o, BoolN *e)
+{
+    return o << ", " << (e->value ? "true" : "false");
 }
 
 static inline std::ostream &operator<<(std::ostream &o, StringN *e)

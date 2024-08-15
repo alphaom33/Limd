@@ -5,12 +5,13 @@
 
 #define OPERATION_DEF_LIST(E) \
     E(FuncCall, 0x1)          \
-    E(Lambda, 0x2)          \
+    E(Lambda, 0x2)            \
     E(VarName, 0x3)           \
     E(IntImmediate, 0x4)      \
-    E(StringImmediate, 0x5)   \
-    E(ListImmediate, 0x6)     \
-    E(Unevaluated, 0x7)
+    E(BoolImmediate, 0x5)     \
+    E(StringImmediate, 0x6)   \
+    E(ListImmediate, 0x7)     \
+    E(Unevaluated, 0x8)
 
 enum Operation
 {

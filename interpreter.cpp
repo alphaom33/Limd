@@ -33,6 +33,10 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
         return new IntT{
             Int,
             ((IntN *)toEvaluate)->value};
+    case BoolImmediate:
+        return new BoolT{
+            Bool,
+            ((BoolN *)toEvaluate)->value};
     case Lambda:
     {
         LambdaN *lambda = (LambdaN *)toEvaluate;
@@ -92,11 +96,6 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
     return nullptr;
 }
 
-class VarNotFound : public std::exception
-{
-public:
-};
-
 TypeT *Interpreter::GetVar(Scope *current, std::string name)
 {
     while (current != nullptr)
@@ -107,6 +106,6 @@ TypeT *Interpreter::GetVar(Scope *current, std::string name)
         }
         current = current->parent;
     }
-    std::cout << "namy" << name;
-    throw VarNotFound();
+    std::cout << "namy" << name << "asdf";
+    return new TypeT{};
 }

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <utility>
 #include "character.h"
+#include <array>
 
 #pragma once
 class Lexer {
@@ -33,4 +34,6 @@ private:
     int current;
     std::string toLex;
     std::string notIdentifierAble = " ,()[]";
+    std::array<std::string, 2> keywords = {"true", "false"};
+    
 };
