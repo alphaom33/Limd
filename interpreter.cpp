@@ -83,6 +83,7 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
             String,
             ((StringN *)toEvaluate)->value};
     case ListImmediate:
+    {
         Interpreter *tmp = new Interpreter(((ListN *)toEvaluate)->values);
         auto out = std::vector<TypeT *>();
         for (ASTN *a : tmp->toInterpret)
@@ -92,6 +93,20 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
         return new ListT{
             List,
             out};
+    }
+    case RangeList:
+    {
+        auto out = std::vector<TypeT *>();
+        for (int i = ((IntN *)((RangeN *)toEvaluate)->start)->value; i < ((IntN *)((RangeN *)toEvaluate)->end)->value; i++) {
+            out.push_back(new IntT{
+                Int,
+                i
+            });
+        }
+        return new ListT{
+            List,
+            out };
+    }
     }
     return nullptr;
 }

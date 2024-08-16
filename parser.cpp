@@ -1,5 +1,7 @@
 #include "parser.h"
 #include "memory"
+#include "lexer.h"
+#include "ranges"
 
 Parser::Parser(std::vector<Lexer::Token *> toParse)
 {
@@ -47,9 +49,26 @@ std::vector<ASTN *> Parser::Parse()
         case BackTickList:
         {
             auto a = countParenthesis();
-            out.push_back(new ListN{
-                ListImmediate,
-                (new Parser(std::vector(a.begin() + 1, a.end())))->Parse()});
+            auto b = (new Parser(std::vector(a.begin() + 1, a.end())))->Parse();
+            if (b[0]->op == RangeList) {
+                out.push_back(b[0]);
+            } else {
+                out.push_back(new ListN{
+                    ListImmediate,
+                    b});
+            }
+        }
+        break;
+        case Range:
+        {
+            auto tmp = *(out.end() - 1);
+            auto a = countParenthesis();
+            out.pop_back();
+            out.push_back(new RangeN{
+                RangeList,
+                tmp,
+                (new Parser(std::vector(a.begin() + 1, a.end())))->Parse()[0]
+            });
         }
         break;
         case Number:

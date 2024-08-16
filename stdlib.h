@@ -161,6 +161,15 @@ TypeT *Pass(Scope *current, std::vector<TypeT *> params) {
     return new TypeT{};
 }
 
+TypeT *Nth(Scope *current, std::vector<TypeT *> params) {
+    return ((ListT *)params[0])->values[((IntT *)params[1])->value];
+}
+
+TypeT *SetNth(Scope *current, std::vector<TypeT *> params) {
+    ((ListT *)params[0])->values[((IntT *)params[1])->value] = params[2];
+    return params[0];
+}
+
 std::map<std::string, TypeT *> initialScope = {
     std::pair<std::string, TypeT *>(
         std::string("=="),
@@ -237,4 +246,14 @@ std::map<std::string, TypeT *> initialScope = {
         new FuncT{
             Function,
             Pass}),
+    std::pair<std::string, TypeT*>(
+        std::string("nth"),
+        new FuncT{
+            Function,
+            Nth}),
+    std::pair<std::string, TypeT*>(
+        std::string("setNth"),
+        new FuncT{
+            Function,
+            SetNth}),
 };

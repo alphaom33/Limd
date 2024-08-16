@@ -15,6 +15,7 @@
     E(BackTick, 0x9)         \
     E(LeftBracket, 0xa)      \
     E(RightBracket, 0xb)     \
+    E(Range, 0xc)
 
 enum Character
 {

@@ -11,7 +11,8 @@
     E(BoolImmediate, 0x5)     \
     E(StringImmediate, 0x6)   \
     E(ListImmediate, 0x7)     \
-    E(Unevaluated, 0x8)
+    E(RangeList, 0x8)         \
+    E(Unevaluated, 0x9)
 
 enum Operation
 {

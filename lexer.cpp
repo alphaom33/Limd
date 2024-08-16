@@ -43,6 +43,10 @@ std::vector<Lexer::Token *> *Lexer::lex()
             current += count;
         }
         break;
+        case '.':
+            current++;
+            tokens->push_back(new Token{Range, ".."});
+            break;
         default:
         {
             if (isdigit(toLex[current]))
