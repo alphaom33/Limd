@@ -20,8 +20,9 @@ TypeT *Equals(Scope *current, std::vector<TypeT *> params) {
             out = out == ((BoolT *)t)->value;
         }
     } else if (params[0]->type == Char) {
-        std::cout << ((CharT *)params[0])->value << ((CharT *)params[1])->value << std::endl;
         out = ((CharT *)params[0])->value == ((CharT *)params[1])->value;
+    } else if (params[0]->type == Int) {
+        out = ((IntT *)params[0])->value == ((IntT *)params[1])->value;
     }
     return new BoolT{
         Bool,
@@ -63,10 +64,14 @@ TypeT *GreaterThan(Scope *current, std::vector<TypeT *> params) {
 }
 
 TypeT *If(Scope *current, std::vector<TypeT *> params) {
-    if (((BoolT*)params[0])->value) {
-        return ((FuncT *)params[1])->body(current, std::vector<TypeT *>());
-    } else if (params[2] != nullptr) {
-        return ((FuncT *)params[2])->body(current, std::vector<TypeT *>());
+    for (int i = 0; i < params.size(); i += 2) {
+        if (params[i]->type != Bool) {
+            return ((FuncT *)params[i])->body(current, std::vector<TypeT *>());
+        }
+
+        if (((BoolT*)params[i])->value) {
+            return ((FuncT *)params[i + 1])->body(current, std::vector<TypeT *>());
+        }
     }
 
     return new TypeT{};

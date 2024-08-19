@@ -1,6 +1,6 @@
 (= `for, [list, function] (
     (= `loop, [start, list, function] (
-        (if (< start, 2), 
+        (if (< start, (len list)), 
             [] (
                 (function (nth list, start), start)
                 (loop (+ start, 1), list, function)
@@ -21,7 +21,7 @@
 ))
 
 (= `**, [base, exponent] (
-    (= `out, base)
+    (= `out, 1)
     (for `(0 .. exponent),
         [] (
             (= `out, (* out, base))
@@ -41,17 +41,23 @@
     (== char, '2'),
         [] (
             (= `return, 2)
+        ),
+        [] (
+            (= `return, 3)
         )
     )
 ))
 
 (= `parseInt, [string] (
-    (reverse string)
-    (= `return, 0)
-    (for string,
-        [element, index] (
-            (= `return, return + (* element, (** 10, index))))
-        ))
+        (reverse string)
+        (= `out, 0)
+        (for string,
+            [element, index] (
+                (= `out, (+ out, (* (charToNum element), (** 10, index))))
+            )
+        )
+        (= `return, out)
+    )
 )
 
-(println (charToNum '1'))
+(println (parseInt (in )))
