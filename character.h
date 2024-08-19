@@ -9,13 +9,14 @@
     E(Comma, 0x3)            \
     E(Number, 0x4)           \
     E(CharList, 0x5)         \
-    E(BackTickList, 0x6)     \
-    E(EndBackTickList, 0x7)  \
-    E(Identifier, 0x8)       \
-    E(BackTick, 0x9)         \
-    E(LeftBracket, 0xa)      \
-    E(RightBracket, 0xb)     \
-    E(Range, 0xc)
+    E(SingleChar, 0x6)       \
+    E(BackTickList, 0x7)     \
+    E(EndBackTickList, 0x8)  \
+    E(Identifier, 0x9)       \
+    E(BackTick, 0xa)         \
+    E(LeftBracket, 0xb)      \
+    E(RightBracket, 0xc)     \
+    E(Range, 0xd)
 
 enum Character
 {

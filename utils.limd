@@ -1,14 +1,57 @@
 (= `for, [list, function] (
     (= `loop, [start, list, function] (
-        (function )
-        (println start)
         (if (< start, 2), 
-            [] ((loop (+ start, 1), list, function)), 
+            [] (
+                (function (nth list, start), start)
+                (loop (+ start, 1), list, function)
+            ), 
             [] ((pass )))
     ))
     (loop 0, list, function)
 ))
 
-(= `reverse, [list] (
-    (for `())
+(= `reverse, [listy] (
+    (for `(0 .. (/ (+ (len listy), 1), 2)),
+        [index] (
+            (= `inverse, (- (- (len listy), 1), index))
+            (= `tmp, (nth listy, index))
+            (setNth listy, index, (nth listy, inverse))
+            (setNth listy, inverse, tmp)
+        ))
 ))
+
+(= `**, [base, exponent] (
+    (= `out, base)
+    (for `(0 .. exponent),
+        [] (
+            (= `out, (* out, base))
+        ))
+    (= `return, out)
+))
+
+(= `charToNum, [char] (
+    (if (== char, '0'),
+        [] (
+            (= `return, 0)
+        ),
+    (== char, '1'),
+        [] (
+            (= `return, 1)
+        ),
+    (== char, '2'),
+        [] (
+            (= `return, 2)
+        )
+    )
+))
+
+(= `parseInt, [string] (
+    (reverse string)
+    (= `return, 0)
+    (for string,
+        [element, index] (
+            (= `return, return + (* element, (** 10, index))))
+        ))
+)
+
+(println (charToNum '1'))

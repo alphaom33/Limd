@@ -104,6 +104,10 @@ std::vector<ASTN *> Parser::Parse()
                 StringImmediate,
                 toParse[current]->value});
             break;
+        case SingleChar:
+            out.push_back(new CharN{
+                CharImmediate,
+                *toParse[current]->value.begin()});
         }
     }
     return out;

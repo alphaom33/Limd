@@ -15,8 +15,13 @@ class TooManyArgs : public std::exception
 
 TypeT *Equals(Scope *current, std::vector<TypeT *> params) {
     bool out = false;
-    for (TypeT *t : params) {
-        out = out == ((BoolT *)t)->value;
+    if (params[0]->type == Bool) {
+        for (TypeT *t : params) {
+            out = out == ((BoolT *)t)->value;
+        }
+    } else if (params[0]->type == Char) {
+        std::cout << ((CharT *)params[0])->value << ((CharT *)params[1])->value << std::endl;
+        out = ((CharT *)params[0])->value == ((CharT *)params[1])->value;
     }
     return new BoolT{
         Bool,
@@ -115,9 +120,30 @@ TypeT *Divide(Scope *current, std::vector<TypeT *> params)
         difference};
 }
 
+Scope *GetThing(Scope *start, std::string ack) {
+        Scope *currenty = start;
+        while (currenty != nullptr) {
+            if (currenty->vars.contains(ack)) {
+                return currenty;
+            }
+            currenty = currenty->parent;
+        }
+        return nullptr;
+}
+
 TypeT *Set(Scope *current, std::vector<TypeT *> params)
 {
-    current->vars[((StringT *)params[0])->value] = params[1];
+    std::string ack = "";
+    for (TypeT *t : ((ListT *)params[0])->values) {
+        ack += ((CharT *)t)->value;
+    }
+
+    Scope *maybe = GetThing(current, ack);
+    if (maybe != nullptr) {
+        maybe->vars[ack] = params[1];
+    } else {
+        current->vars[ack] = params[1];
+    }
     return params[1];
 }
 
@@ -127,6 +153,7 @@ TypeT *Print(Scope *current, std::vector<TypeT *> params)
     {
         std::cout << t;
     }
+    std::cout << std::flush;
     return new TypeT{};
 }
 
@@ -136,7 +163,7 @@ TypeT *Println(Scope *current, std::vector<TypeT *> params)
     {
         std::cout << t;
     }
-    std::cout << "\n";
+    std::cout << std::endl;
     return new TypeT{};
 }
 
@@ -144,9 +171,16 @@ TypeT *Println(Scope *current, std::vector<TypeT *> params)
 TypeT *In(Scope* current, std::vector<TypeT *> params) {
     std::string a;
     std::cin >> a;
-    return new StringT{
+    auto out = std::vector<TypeT *>();
+    for (const char c : a) {
+        out.push_back(new CharT{
+            Char,
+            c
+        });
+    }
+    return new ListT{
         String,
-        a
+        out
     };
 }
 
@@ -158,7 +192,7 @@ TypeT *Len(Scope *current, std::vector<TypeT *> params) {
 }
 
 TypeT *Pass(Scope *current, std::vector<TypeT *> params) {
-    return new TypeT{};
+    return current->vars["return"];
 }
 
 TypeT *Nth(Scope *current, std::vector<TypeT *> params) {

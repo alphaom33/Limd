@@ -43,6 +43,12 @@ std::vector<Lexer::Token *> *Lexer::lex()
             current += count;
         }
         break;
+        case '\'':
+        {
+            tokens->push_back(new Token(SingleChar, std::string(1, toLex[++current])));
+            current++;
+        }
+        break;
         case '.':
             current++;
             tokens->push_back(new Token{Range, ".."});

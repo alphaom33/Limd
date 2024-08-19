@@ -9,10 +9,11 @@
     E(VarName, 0x3)           \
     E(IntImmediate, 0x4)      \
     E(BoolImmediate, 0x5)     \
-    E(StringImmediate, 0x6)   \
-    E(ListImmediate, 0x7)     \
-    E(RangeList, 0x8)         \
-    E(Unevaluated, 0x9)
+    E(CharImmediate, 0x6)     \
+    E(StringImmediate, 0x7)   \
+    E(ListImmediate, 0x8)     \
+    E(RangeList, 0x9)         \
+    E(Unevaluated, 0xa)
 
 enum Operation
 {

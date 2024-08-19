@@ -11,7 +11,7 @@ std::string readFile(std::string name);
 
 int main()
 {
-    std::string file = readFile("basic.limd");
+    std::string file = readFile("utils.limd");
 
     Lexer *lexer = new Lexer(file);
 

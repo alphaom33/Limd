@@ -25,8 +25,8 @@ struct BoolT : public TypeT {
     bool value;
 };
 
-struct StringT : public TypeT {
-    std::string value;
+struct CharT : public TypeT {
+    char value;
 };
 
 struct ListT : public TypeT {
@@ -43,9 +43,10 @@ static inline std::ostream &operator<<(std::ostream &o, TypeT *e) {
     case Bool:
         o << ((BoolT *)e)->value;
         break;
-    case String:
-        o << ((StringT *)e)->value;
+    case Char:
+        o << ((CharT *)e)->value;
         break;
+    case String:
     case List:
         o << "[ ";
         for (TypeT *t : ((ListT *)e)->values) {

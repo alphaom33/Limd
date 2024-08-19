@@ -8,7 +8,8 @@
     E(Int, 0x2)          \
     E(Bool, 0x3)          \
     E(String, 0x4)       \
-    E(List, 0x5)
+    E(Char, 0x5)       \
+    E(List, 0x6)
 
 enum Type
 {

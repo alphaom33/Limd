@@ -37,12 +37,16 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
         return new BoolT{
             Bool,
             ((BoolN *)toEvaluate)->value};
+    case CharImmediate:
+        return new CharT{
+            Char,
+            ((CharN *)toEvaluate)->value};
     case Lambda:
     {
         LambdaN *lambda = (LambdaN *)toEvaluate;
         return new FuncT{
             Function,
-            [lambda](Scope *scope, std::vector<TypeT *> params)
+            [lambda, currentScope](Scope *scope, std::vector<TypeT *> params)
             {
                 auto paramNames = std::map<std::string, TypeT *>();
                 for (int i = 0; i < lambda->parameters.size() && i < params.size(); i++)
@@ -51,7 +55,7 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
                 }
 
                 Scope *current = new Scope{
-                    scope,
+                    currentScope,
                     paramNames};
                 TypeT *out = (new Interpreter(lambda->toRun))->Interpret(current).vars["return"];
                 free(current);
@@ -75,13 +79,31 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
         return currentScope->vars["return"];
     }
     case Unevaluated:
-        return new StringT{
+    {
+        auto out = std::vector<TypeT *>();
+        for (char c : ((UnevaluatedN *)toEvaluate)->value)
+        {
+            out.push_back(new CharT{
+                Char,
+                c});
+        };
+        return new ListT{
             String,
-            ((UnevaluatedN *)toEvaluate)->value};
+            out};
+    }
     case StringImmediate:
-        return new StringT{
+    {
+        auto out = std::vector<TypeT *>();
+        for (char c : ((UnevaluatedN *)toEvaluate)->value)
+        {
+            out.push_back(new CharT{
+                Char,
+                c});
+        };
+        return new ListT{
             String,
-            ((StringN *)toEvaluate)->value};
+            out};
+    }
     case ListImmediate:
     {
         Interpreter *tmp = new Interpreter(((ListN *)toEvaluate)->values);
@@ -97,7 +119,9 @@ TypeT *Interpreter::Evaluate(ASTN *toEvaluate, Scope *currentScope)
     case RangeList:
     {
         auto out = std::vector<TypeT *>();
-        for (int i = ((IntN *)((RangeN *)toEvaluate)->start)->value; i < ((IntN *)((RangeN *)toEvaluate)->end)->value; i++) {
+        IntT *start = (IntT *)Evaluate(((RangeN *)toEvaluate)->start, currentScope);
+        IntT *end = (IntT *)Evaluate(((RangeN *)toEvaluate)->end, currentScope);
+        for (int i = start->value; i < end->value; i++) {
             out.push_back(new IntT{
                 Int,
                 i
@@ -121,6 +145,6 @@ TypeT *Interpreter::GetVar(Scope *current, std::string name)
         }
         current = current->parent;
     }
-    std::cout << "namy" << name << "asdf";
-    return new TypeT{};
+    std::cout << "namy" << name << "asdf" << std::endl;
+    throw VarNotFound();
 }

@@ -33,6 +33,11 @@ struct BoolN : public ASTN
     bool value;
 };
 
+struct CharN : public ASTN
+{
+    char value;
+};
+
 struct StringN : public ASTN
 {
     std::string value;
