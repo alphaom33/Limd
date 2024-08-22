@@ -2,6 +2,7 @@
 #include "memory"
 #include "lexer.h"
 #include "ranges"
+#include "readFile.h"
 
 Parser::Parser(std::vector<Lexer::Token *> toParse)
 {
@@ -87,6 +88,10 @@ std::vector<ASTN *> Parser::Parse()
                     BoolImmediate,
                     toParse[current]->value == "true"
                 });
+                break;
+            } else if (toParse[current]->value == "import") {
+                auto a = (new Lexer(readFile(toParse[++current]->value + ".limd")))->lex();
+                toParse.insert(toParse.begin() + current + 1, a->begin(), a->end());
                 break;
             }
 

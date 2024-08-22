@@ -1,17 +1,15 @@
 #include "iostream"
-#include "filesystem"
-#include "fstream"
 #include "string"
 #include "lexer.h"
 #include "parser.h"
 #include "ast.h"
 #include "interpreter.h"
+#include "readFile.h"
 
-std::string readFile(std::string name);
 
 int main()
 {
-    std::string file = readFile("utils.limd");
+    std::string file = readFile("basic.limd");
 
     Lexer *lexer = new Lexer(file);
 
@@ -36,16 +34,4 @@ int main()
     }
 
     std::cout << std::endl;
-}
-
-std::string readFile(std::string name)
-{
-    std::ifstream mainFile(name);
-    std::string tmpString;
-    std::string outString;
-    while (std::getline(mainFile, tmpString))
-    {
-        outString += tmpString;
-    }
-    return outString;
 }
