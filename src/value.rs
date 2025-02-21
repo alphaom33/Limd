@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use crate::obj::Obj;
 
+#[derive(Clone)]
 pub enum Value {
   Nil,
   Boolean(bool),

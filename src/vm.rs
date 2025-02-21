@@ -1,3 +1,4 @@
+use crate::function::Callable;
 use std::vec;
 use std::slice;
 use std::ops::{Add, Sub, Mul, Div};
@@ -32,43 +33,48 @@ impl <'a> VM<'a> {
     return self.run();
   }
 
-  fn read_byte(&mut self) -> u8 {
-    return *self.ip.next().unwrap();
+  fn read_byte(ip: &mut slice::Iter<u8>) -> u8 {
+    return *ip.next().unwrap();
   }
   
-  fn read_constant(&mut self) -> Value {
-    let a = self.read_byte() as usize;
-    return self.chunk.constants[a];
-  }
-
-  fn push(&mut self, value: Value) {
-    self.stack.push(value);
-  }
-
-  fn pop(&mut self) -> Value {
-    return self.stack.pop().unwrap();
+  fn read_constant(mut ip: &mut slice::Iter<u8>, chunk: &'a Chunk) -> Value {
+    let a = Self::read_byte(&mut ip) as usize;
+    return chunk.constants[a].clone();
   }
 
   fn run(&mut self) -> InterpretResult {
     while let Some(byte) = self.ip.next() {
+
+      print!("          ");
+      for slot in &self.stack {
+        print!("[ {} ]", slot);
+      }
+      println!();
+      
       let op_code = OpCode::index_enum(*byte as usize).expect("Invalid opcode");
       match op_code {
         
         OpCode::OpConstant => {
-          let constant = self.read_constant();
-          self.push(constant);
+          let constant = Self::read_constant(&mut self.ip, self.chunk);
+          self.stack.push(constant);
         },
 
         OpCode::OpFunction => {
-          let function = match self.pop() {
+          let function: Box<dyn Callable> = match self.stack.pop().unwrap() {
             Value::Object(o) => match o {
-              obj::Obj::Function(f) => f,
-              _ => return InterpretResult::RuntimeError,
+              obj::Obj::Function(f) => Box::new(f),
+              obj::Obj::Native(f) => Box::new(f),
             },
             _ => return InterpretResult::RuntimeError,
           };
-          let args: Vec<Value> = (0 .. function.arity).into_iter().map(|_| self.pop()).collect();
-          function.call(&args);
+          let mut args: Vec<Value> = Vec::new();
+          for _ in 0..function.arity() {
+            args.push(self.stack.pop().unwrap());
+          }
+          match function.call(&args) {
+            Some(s) => self.stack.push(s.clone()),
+            None => return InterpretResult::RuntimeError,
+          }
         }
         
         OpCode::OpReturn => return InterpretResult::Ok,

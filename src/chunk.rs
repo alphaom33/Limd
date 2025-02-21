@@ -13,7 +13,7 @@ impl Into<u8> for OpCode {
       return self as u8;
     }
 }
-
+#[derive(Clone)]
 pub struct Chunk {
   pub code: vec::Vec<u8>,
   pub constants: vec::Vec<value::Value>,

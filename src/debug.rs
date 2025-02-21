@@ -1,4 +1,5 @@
 use enum_index::IndexEnum;
+use std::io::{self, Write};
 
 use crate::chunk::{Chunk, OpCode};
 
@@ -35,7 +36,7 @@ impl Chunk {
       Some(op_code) => match op_code {
         OpCode::OpReturn => self.simple_instruction("OP_RETURN", offset),
         OpCode::OpConstant => self.constant_instruction("OP_CONSTANT", offset),
-        OpCode::OpAdd => self.simple_instruction("OP_ADD", offset),
+        OpCode::OpFunction => self.simple_instruction("OP_FUNCTION", offset),
       },
       None => self.simple_instruction(&format!("Unknown opcode {}", self.code[offset]), offset)
     }
