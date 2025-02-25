@@ -1,7 +1,8 @@
-use crate::function::Callable;
+use crate::stdlib;
 use std::vec;
 use std::slice;
 use std::ops::{Add, Sub, Mul, Div};
+use std::collections::HashMap;
 
 use crate::chunk::{Chunk, OpCode};
 use crate::value::Value;
@@ -12,20 +13,24 @@ pub struct VM<'a> {
   pub chunk: &'a Chunk,
   pub ip: slice::Iter<'a, u8>,
   pub stack: vec::Vec<Value>,
+  pub globals: HashMap<String, Value>,
 }
 
+#[derive(PartialEq)]
 pub enum InterpretResult {
   Ok,
   CompileError,
-  RuntimeError,
+  RuntimeError(String),
 }
 
 impl <'a> VM<'a> {
   pub fn new(chunk: &'a Chunk) -> VM<'a> {
+    let globals = stdlib::get();
     VM {
       chunk,
       ip: chunk.code.iter(),
       stack: vec::Vec::new(),
+      globals,
     }
   }
   
@@ -53,31 +58,48 @@ impl <'a> VM<'a> {
       
       let op_code = OpCode::index_enum(*byte as usize).expect("Invalid opcode");
       match op_code {
+        OpCode::GetGlobal => {
+          let name = Self::read_constant(&mut self.ip, self.chunk);
+          match name {
+            Value::String(s) => {
+              match self.globals.get(&s) {
+                Some(s) => {
+                   self.stack.push(s.clone())},
+                _ => return InterpretResult::RuntimeError(std::format!("{s} is not defined.")),
+              }
+            },
+            _ => return InterpretResult::RuntimeError("??????".to_owned()),
+          };
+        }
         
-        OpCode::OpConstant => {
+        OpCode::Constant => {
           let constant = Self::read_constant(&mut self.ip, self.chunk);
           self.stack.push(constant);
         },
 
-        OpCode::OpFunction => {
-          let function: Box<dyn Callable> = match self.stack.pop().unwrap() {
-            Value::Object(o) => match o {
-              obj::Obj::Function(f) => Box::new(f),
-              obj::Obj::Native(f) => Box::new(f),
-            },
-            _ => return InterpretResult::RuntimeError,
-          };
-          let mut args: Vec<Value> = Vec::new();
-          for _ in 0..function.arity() {
+        OpCode::Call => {
+          let arity = Self::read_byte(&mut self.ip);
+          let mut args = vec::Vec::<Value>::new();
+          for _ in 0..arity {
             args.push(self.stack.pop().unwrap());
           }
-          match function.call(&args) {
-            Some(s) => self.stack.push(s.clone()),
-            None => return InterpretResult::RuntimeError,
-          }
+          
+          match args.pop().unwrap() {
+            Value::Object(o) => match *o {
+              obj::Obj::Function(f) => {
+              }
+              
+              obj::Obj::Native(f) => {
+                args.reverse();
+                let out = (f.function)(self, &mut args);
+                self.stack.push(out);
+              }
+            },
+            _ => return InterpretResult::RuntimeError("Only functions can be called.".to_owned()),
+          };
         }
         
-        OpCode::OpReturn => return InterpretResult::Ok,
+        OpCode::Return => return InterpretResult::Ok,
       }
     }
     return InterpretResult::Ok;

@@ -12,46 +12,26 @@ mod debug;
 mod value;
 mod vm;
 mod obj;
-mod function;
+mod compiler;
+mod stdlib;
 
 fn main() {
-  let mut chunk = chunk::Chunk::new();
+  let mut compiler = compiler::Compiler::new();  
+  compiler.compile();
 
-  let c = chunk.add_constant(value::Value::Object(obj::Obj::Native(obj::Native{
-    arity: 2,
-    function: |args| {
-      let a = args[0].clone();
-      let b = args[1].clone();
-      
-      let sum = match (a, b) {
-        (value::Value::Number(a), value::Value::Number(b)) => a + b,
-        _ => return Option::None,
-      };
-        
-      return Option::Some(value::Value::Number(sum));
-    }
-  })));
-  
-  let a = chunk.add_constant(value::Value::Number(1.2));
-  let b = chunk.add_constant(value::Value::Number(2.3));
-  
-  
-  chunk.write(chunk::OpCode::OpConstant as u8, 0);
-  chunk.write(a, 0);
-  chunk.write(chunk::OpCode::OpConstant as u8, 0);
-  chunk.write(b, 0);
-  
-  chunk.write(chunk::OpCode::OpConstant as u8, 0);
-  chunk.write(c, 0);
-  
-  chunk.write(chunk::OpCode::OpFunction as u8, 0);
+  if compiler.had_error {
+    return;
+  }
+  compiler.chunk.disassemble("test");
 
-  chunk.write(chunk::OpCode::OpReturn as u8, 0);
-
-  chunk.disassemble("test chunk");
-  
-  let mut vm = vm::VM::new(&chunk);
-  vm.interpret();
+  let mut vm = vm::VM::new(&compiler.chunk);
+  match vm.interpret() {
+    vm::InterpretResult::RuntimeError(s) => {
+      println!("{s}");
+      return;
+    },
+    _ => (),
+  }
 }
 
 fn repl() {

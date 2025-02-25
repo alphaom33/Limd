@@ -3,9 +3,10 @@ use crate::value;
 
 #[derive(EnumIndex, IndexEnum)]
 pub enum OpCode {
-  OpReturn,
-  OpConstant,
-  OpFunction,
+  Return,
+  Constant,
+  Call,
+  GetGlobal,
 }
 
 impl Into<u8> for OpCode {
@@ -13,11 +14,11 @@ impl Into<u8> for OpCode {
       return self as u8;
     }
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Chunk {
   pub code: vec::Vec<u8>,
   pub constants: vec::Vec<value::Value>,
-  pub lines: vec::Vec<i32>,
+  pub lines: vec::Vec<usize>,
 }
 
 impl Chunk {
@@ -29,7 +30,7 @@ impl Chunk {
     }
   }
 
-  pub fn write<T>(&mut self, byte: T, line: i32) where T: Into<u8> {
+  pub fn write<T>(&mut self, byte: T, line: usize) where T: Into<u8> {
     self.lines.push(line);
     self.code.push(byte.into());
   }

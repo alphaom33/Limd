@@ -1,10 +1,10 @@
-use crate::function::Callable;
+use crate::vm::VM;
 use crate::value::Value;
 use crate::chunk::Chunk;
 
 use std::fmt::Display;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Obj {
   Native(Native),
   Function(Function),
@@ -17,29 +17,19 @@ impl Display for Obj {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Native {
   pub arity: u8,
-  pub function: fn(&[Value]) -> Option<Value>,
+  pub function: fn(&mut VM, &mut [Value]) -> Value,
 }
 
-impl Callable for Native {
-  fn call(&self, args: &[Value]) -> Option<Value> {
-    return (self.function)(args);
-  }
-
-  fn arity(&self) -> u8 {
-    return self.arity;
-  }
-}
-
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Function {
   pub arity: u8,
   pub body: Chunk,
 }
 
-impl Callable for Function {
+impl Function {
   fn call(&self, _args: &[Value]) -> Option<Value> {
     return Option::Some(Value::Nil);
   }
