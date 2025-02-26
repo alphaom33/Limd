@@ -16,25 +16,17 @@ mod compiler;
 mod stdlib;
 
 fn main() {
-  let mut compiler = compiler::Compiler::new();  
-  compiler.compile();
-
-  if compiler.had_error {
-    return;
-  }
-  compiler.chunk.disassemble("test");
-
-  let mut vm = vm::VM::new(&compiler.chunk);
-  match vm.interpret() {
-    vm::InterpretResult::RuntimeError(s) => {
-      println!("{s}");
-      return;
-    },
-    _ => (),
+  if env::args().len() == 1 {
+    repl();
+  } else if env::args().len() == 2 {
+    file();
+  } else {
+    panic!("Not that many args please, thank you");
   }
 }
 
 fn repl() {
+  let mut vm = vm::VM::new();
   loop {
     print!("> ");
     stdout().flush().unwrap();
@@ -48,15 +40,30 @@ fn repl() {
 
     let mut chars = line.chars();
     chars.next_back();
-    run(chars.as_str().to_owned());
+    run(&mut vm, chars.as_str().to_owned());
   }
 }
 
 fn file() {
   let filename = env::args().nth(1).unwrap();
   let file = fs::read_to_string(filename.clone()).expect(&format!("Unable to read file: {}", filename));
-  run(file);
+  run(&mut vm::VM::new(), file);
 }
 
-fn run(to_run: String) {
+fn run(vm: &mut vm::VM, to_run: String) {
+  let mut compiler = compiler::Compiler::new(to_run);
+  compiler.compile();
+
+  if compiler.had_error {
+    return;
+  }
+  compiler.chunk.disassemble("test");
+
+  match vm.interpret(Box::new(compiler.chunk)) {
+    vm::InterpretResult::RuntimeError(s) => {
+      println!("{s}");
+      return;
+    },
+    _ => (),
+  }
 }

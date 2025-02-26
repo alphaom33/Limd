@@ -11,6 +11,7 @@ pub struct Scanner {
     Number,
     Identifier,
     String,
+    Label,
     Error,
     EOF,
   }
@@ -39,6 +40,18 @@ pub struct Scanner {
       }
     }
   
+    fn match_identifier(&mut self) -> usize {
+      let start = self.current - 1;
+      while let Some(s) = self.peek() {
+        self.advance();
+        if " \n\t,()".contains(s) {
+          break;
+        }
+      }
+
+      return start;
+    }
+  
     fn string(&mut self) -> Token {
       let start = self.current;
       while self.peek().unwrap() != '"' {
@@ -52,6 +65,17 @@ pub struct Scanner {
         value: self.source[start..self.current - 1].to_owned(),
         line: self.line,
       }
+    }
+    
+    fn label(&mut self) -> Token {
+      self.advance();
+      let start = self.match_identifier();
+
+      return Token{
+        token_type: TokenType::Label,
+        value: self.source[start..self.current - 1].to_owned(),
+        line: self.line
+      };
     }
     
     fn number(&mut self) -> Token {
@@ -72,19 +96,12 @@ pub struct Scanner {
     }
   
     fn identifier(&mut self) -> Token {
-      let start = self.current - 1;
-      while let Some(s) = self.peek() {
-        if " \n\t,()".contains(s) {
-          break;
-        }
-        
-        self.advance();
-      }
+        let start = self.match_identifier();
       
-      return Token{
-        token_type: TokenType::Identifier,
-        value: self.source[start..self.current].to_owned(),
-        line: self.line};
+        return Token{
+          token_type: TokenType::Identifier,
+          value: self.source[start..self.current - 1].to_owned(),
+          line: self.line};
     }
   
     fn skip_white(&mut self) {
@@ -121,6 +138,8 @@ pub struct Scanner {
         '(' => self.make_token(TokenType::LeftParen, "("),
         ')' => self.make_token(TokenType::RightParen, ")"),
         '"' => self.string(),
+        ':' => {
+          self.label()},
         _ => {
           if next.is_numeric() {
             self.number()

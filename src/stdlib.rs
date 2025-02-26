@@ -1,9 +1,8 @@
-use crate::vm::VM;
 use crate::obj;
 use crate::value::Value;
 use std::collections::HashMap;
 
-fn function(name: &str, arity: u8, function: fn(&mut VM, &mut [Value]) -> Value) -> (String, Value) {
+fn function(name: &str, arity: u8, function: fn(&mut HashMap<String, Value>, &mut [Value]) -> Value) -> (String, Value) {
   return (
     name.to_owned(),
     Value::Object(Box::new(obj::Obj::Native(obj::Native{
@@ -12,19 +11,15 @@ fn function(name: &str, arity: u8, function: fn(&mut VM, &mut [Value]) -> Value)
     }))));
 }
 
-fn precedence(args: &[Value]) -> Value {
-  for arg in args {
-    match arg {
-      Value::String(_) => return Value::String("".to_owned()),
-      Value::Number(_) => (),
-      _ => return Value::Nil,
-    }
-  }
-  return Value::Number(0.);
-}
-
 pub fn get() -> HashMap<String, Value> {
   return HashMap::from([
+    function("def", 1, |globals, args| {
+      match args[0].clone() {
+        Value::Label(s) => globals.insert(s, args[1].clone()),
+        _ => return Value::Nil,
+      };
+      return Value::Nil;
+    }),
     function("print", 1, |_vm, args| {
       for arg in args {
         print!("{} ", arg);

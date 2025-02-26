@@ -25,10 +25,10 @@ pub struct Compiler {
 }
 
 impl Compiler {
-  pub fn new() -> Self {
+  pub fn new(to_run: String) -> Self {
     Self{
       current: 0,
-      scanner: Scanner::new("(and 1 0 (print \"a\"))".to_owned()),
+      scanner: Scanner::new(to_run),
       parser: Parser::new(),
       chunk: chunk::Chunk::new(),
       had_error: false,
@@ -81,10 +81,22 @@ impl Compiler {
     self.error(message);
   }
 
+  fn function(&mut self) {
+    
+  }
+
   fn call(&mut self) {
     if self.examine(TokenType::LeftParen) {
-      let num = self.args();
-      self.emit_bytes(OpCode::Call, num);
+      match self.parser.current.token_type {
+        // add macros later to make this less worse hopefully
+        TokenType::Identifier if self.parser.current.value == "fn" => {
+          self.function();
+        },
+        _ => {
+          let num = self.args();
+          self.emit_bytes(OpCode::Call, num);
+        }
+      }
     } else {
       self.immediate();
     }
@@ -96,6 +108,10 @@ impl Compiler {
       self.emit_bytes(OpCode::Constant, constant);
     } else if self.examine(TokenType::String) {
       let constant = self.add_constant(Value::String(self.parser.previous.value.clone()));
+      self.emit_bytes(OpCode::Constant, constant);
+    } else if self.examine(TokenType::Label) {
+      println!("labeld");
+      let constant = self.add_constant(Value::Label(self.parser.previous.value.clone()));
       self.emit_bytes(OpCode::Constant, constant);
     } else if self.check(TokenType::Identifier) {
       self.get_var();

@@ -7,6 +7,7 @@ pub enum Value {
   Boolean(bool),
   Number(f64),
   String(String),
+  Label(String),
   Object(Box<Obj>),
 }
 
@@ -17,6 +18,7 @@ impl Value {
       Self::Boolean(b) => *b,
       Self::Number(n) => *n != 0.0,
       Self::String(s) => !s.is_empty(),
+      Self::Label(_) => true,
       Self::Object(_) => true,
     };
   }
@@ -29,6 +31,7 @@ impl Display for Value {
       Value::Boolean(b) => write!(f, "{}", b),
       Value::Number(n) => write!(f, "{}", n),
       Value::String(s) => write!(f, "{}", s),
+      Value::Label(s) => write!(f, "{}", s),
       Value::Object(o) => write!(f, "{}", o),
     }
   }

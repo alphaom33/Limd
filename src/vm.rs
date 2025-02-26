@@ -9,9 +9,7 @@ use crate::value::Value;
 use crate::obj;
 use enum_index::IndexEnum;
 
-pub struct VM<'a> {
-  pub chunk: &'a Chunk,
-  pub ip: slice::Iter<'a, u8>,
+pub struct VM {
   pub stack: vec::Vec<Value>,
   pub globals: HashMap<String, Value>,
 }
@@ -23,32 +21,32 @@ pub enum InterpretResult {
   RuntimeError(String),
 }
 
-impl <'a> VM<'a> {
-  pub fn new(chunk: &'a Chunk) -> VM<'a> {
+impl VM {
+  pub fn new() -> VM {
     let globals = stdlib::get();
     VM {
-      chunk,
-      ip: chunk.code.iter(),
       stack: vec::Vec::new(),
       globals,
     }
   }
   
-  pub fn interpret(&mut self) -> InterpretResult {
-    return self.run();
+  pub fn interpret(&mut self, chunk: Box<Chunk>) -> InterpretResult {
+    self.stack.clear();
+    return self.run(chunk);
   }
 
   fn read_byte(ip: &mut slice::Iter<u8>) -> u8 {
     return *ip.next().unwrap();
   }
   
-  fn read_constant(mut ip: &mut slice::Iter<u8>, chunk: &'a Chunk) -> Value {
+  fn read_constant(mut ip: &mut slice::Iter<u8>, chunk: Chunk) -> Value {
     let a = Self::read_byte(&mut ip) as usize;
     return chunk.constants[a].clone();
   }
 
-  fn run(&mut self) -> InterpretResult {
-    while let Some(byte) = self.ip.next() {
+  fn run(&mut self, chunk: Box<Chunk>) -> InterpretResult {
+    let mut ip = chunk.code.iter();
+    while let Some(byte) = ip.next() {
 
       print!("          ");
       for slot in &self.stack {
@@ -59,7 +57,7 @@ impl <'a> VM<'a> {
       let op_code = OpCode::index_enum(*byte as usize).expect("Invalid opcode");
       match op_code {
         OpCode::GetGlobal => {
-          let name = Self::read_constant(&mut self.ip, self.chunk);
+          let name = Self::read_constant(&mut ip,  *chunk.clone());
           match name {
             Value::String(s) => {
               match self.globals.get(&s) {
@@ -73,12 +71,12 @@ impl <'a> VM<'a> {
         }
         
         OpCode::Constant => {
-          let constant = Self::read_constant(&mut self.ip, self.chunk);
+          let constant = Self::read_constant(&mut ip, *chunk.clone());
           self.stack.push(constant);
         },
 
         OpCode::Call => {
-          let arity = Self::read_byte(&mut self.ip);
+          let arity = Self::read_byte(&mut ip);
           let mut args = vec::Vec::<Value>::new();
           for _ in 0..arity {
             args.push(self.stack.pop().unwrap());
@@ -91,7 +89,7 @@ impl <'a> VM<'a> {
               
               obj::Obj::Native(f) => {
                 args.reverse();
-                let out = (f.function)(self, &mut args);
+                let out = (f.function)(&mut self.globals, &mut args);
                 self.stack.push(out);
               }
             },
