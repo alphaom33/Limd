@@ -24,12 +24,14 @@ impl Display for Obj {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Native {
   pub arity: u8,
+  pub varargs: bool,
   pub function: fn(&mut HashMap<String, Value>, &mut [Value]) -> Value,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Function {
   pub arity: u8,
+  pub varargs: bool,
   pub body: Chunk,
 }
 

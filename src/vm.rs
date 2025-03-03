@@ -88,6 +88,9 @@ impl VM {
               }
               
               obj::Obj::Native(f) => {
+                if !f.varargs && args.len() != f.arity as usize {
+                  return InterpretResult::RuntimeError(format!("Exected {} args, but {} where given.", f.arity, args.len()))
+                }
                 args.reverse();
                 let out = (f.function)(&mut self.globals, &mut args);
                 self.stack.push(out);
