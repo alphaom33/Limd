@@ -40,7 +40,7 @@ fn repl() {
 
     let mut chars = line.chars();
     chars.next_back();
-    run(&mut vm, chars.as_str().to_owned());
+    println!("{}", run(&mut vm, chars.as_str().to_owned()).unwrap_or_default());
   }
 }
 
@@ -50,20 +50,21 @@ fn file() {
   run(&mut vm::VM::new(), file);
 }
 
-fn run(vm: &mut vm::VM, to_run: String) {
+fn run(vm: &mut vm::VM, to_run: String) -> Option<value::Value> {
   let mut compiler = compiler::Compiler::new(to_run);
   compiler.compile();
 
   if compiler.had_error {
-    return;
+    return None;
   }
   compiler.chunk.disassemble("test");
 
-  match vm.interpret(Box::new(compiler.chunk)) {
+  return match vm.interpret(Box::new(compiler.chunk)) {
     vm::InterpretResult::RuntimeError(s) => {
       println!("{s}");
-      return;
+      None
     },
-    _ => (),
+    vm::InterpretResult::Ok(s) => s,
+    _ => None,
   }
 }

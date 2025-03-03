@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use crate::obj::Obj;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
   Nil,
   Boolean(bool),
@@ -35,4 +35,10 @@ impl Display for Value {
       Value::Object(o) => write!(f, "{}", o),
     }
   }
+}
+
+impl Default for Value {
+    fn default() -> Self {
+      return Value::Nil;
+    }
 }

@@ -16,7 +16,7 @@ pub struct VM {
 
 #[derive(PartialEq)]
 pub enum InterpretResult {
-  Ok,
+  Ok(Option<Value>),
   CompileError,
   RuntimeError(String),
 }
@@ -97,9 +97,9 @@ impl VM {
           };
         }
         
-        OpCode::Return => return InterpretResult::Ok,
+        OpCode::Return => return InterpretResult::Ok(self.stack.pop()),
       }
     }
-    return InterpretResult::Ok;
+    return InterpretResult::Ok(self.stack.pop());
   }
 }

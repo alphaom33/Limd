@@ -5,7 +5,7 @@ use crate::chunk::Chunk;
 use std::collections::HashMap;
 use std::fmt::Display;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Obj {
   Native(Native),
   Function(Function),
@@ -21,13 +21,13 @@ impl Display for Obj {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Native {
   pub arity: u8,
   pub function: fn(&mut HashMap<String, Value>, &mut [Value]) -> Value,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Function {
   pub arity: u8,
   pub body: Chunk,
