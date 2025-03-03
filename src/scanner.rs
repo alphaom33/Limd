@@ -11,6 +11,7 @@ pub struct Scanner {
     Number,
     Identifier,
     String,
+    Nil,
     Label,
     Error,
     EOF,
@@ -95,13 +96,30 @@ pub struct Scanner {
       }
     }
   
+    fn keywords(&self, start: &str) -> Option<Token> {
+      let tokens = [
+        self.make_token(TokenType::Nil, "nil"),
+      ];
+
+      let names = tokens.clone().map(|x| x.value);
+      if let Some(i) = names.iter().position(|s| s == start) {
+        return Some(tokens[i].clone());
+      }
+      return None;
+    }
+  
     fn identifier(&mut self) -> Token {
         let start = self.match_identifier();
+        let value = &self.source[start..self.current - 1];
       
-        return Token{
-          token_type: TokenType::Identifier,
-          value: self.source[start..self.current - 1].to_owned(),
-          line: self.line};
+        if let Some(a) = self.keywords(value) {
+          return a;
+        } else {
+          return Token{
+            token_type: TokenType::Identifier,
+            value: value.to_owned(),
+            line: self.line};
+        }
     }
   
     fn skip_white(&mut self) {

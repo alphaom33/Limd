@@ -63,7 +63,7 @@ impl VM {
               match self.globals.get(&s) {
                 Some(s) => {
                    self.stack.push(s.clone())},
-                _ => return InterpretResult::RuntimeError(std::format!("{s} is not defined.")),
+                None => return InterpretResult::RuntimeError(std::format!("{s} is not defined.")),
               }
             },
             _ => return InterpretResult::RuntimeError("??????".to_owned()),

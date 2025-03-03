@@ -36,6 +36,7 @@ impl Compiler {
   }
 
   fn add_constant(&mut self, value: Value) -> u8 {
+    println!("{:?}", value);
     self.chunk.add_constant(value);
     return u8::try_from(self.chunk.constants.len() - 1).ok().unwrap();
   }
@@ -113,7 +114,10 @@ impl Compiler {
       println!("labeld");
       let constant = self.add_constant(Value::Label(self.parser.previous.value.clone()));
       self.emit_bytes(OpCode::Constant, constant);
-    } else if self.check(TokenType::Identifier) {
+    } else if self.examine(TokenType::Nil) {
+      let constant = self.add_constant(Value::Nil);
+      self.emit_bytes(OpCode::Constant, constant);
+    }else if self.check(TokenType::Identifier) {
       self.get_var();
     }
   }
