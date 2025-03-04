@@ -15,7 +15,7 @@ fn function(name: &str, arity: u8, varargs: bool, function: fn(&mut HashMap<Stri
 macro_rules! binary_op {
   ($op:tt) => {
     function(stringify!($op), 0, true, |_vm, args| {
-      if let Some((Value::Number(sum), rest)) = args.split_last() {
+      if let Some((Value::Number(sum), rest)) = args.split_first() {
         let mut sum = *sum;
         for arg in rest {
           match arg {
@@ -26,6 +26,28 @@ macro_rules! binary_op {
         return Value::Number(sum);
       }
       return Value::Nil;
+     
+  })};
+}
+
+macro_rules! binary_op2 {
+  ($op:tt) => {
+    function(stringify!($op), 0, true, |_vm, args| {
+      if let Some((Value::Number(sum), rest)) = args.split_first() {
+        let mut last = *sum;
+        for arg in rest {
+          match arg {
+            Value::Number(n) => {
+              if !(last $op *n) {
+                return Value::Boolean(false);
+              }
+              last = *n;
+            },
+            _ => (),
+          }
+        }
+      }
+      return Value::Boolean(true);
      
   })};
 }
@@ -49,5 +71,10 @@ pub fn get() -> HashMap<String, Value> {
     binary_op!(-),
     binary_op!(/),
     binary_op!(*),
+
+    binary_op2!(>),
+    binary_op2!(>=),
+    binary_op2!(<),
+    binary_op2!(<=),
   ]);
 }
