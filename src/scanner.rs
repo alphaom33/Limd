@@ -13,6 +13,7 @@ pub struct Scanner {
     Number,
     Identifier,
     String,
+    BackTick,
     Nil,
     Bool,
     Label,
@@ -162,6 +163,7 @@ pub struct Scanner {
         ')' => self.make_token(TokenType::RightParen, ")"),
         '[' => self.make_token(TokenType::LeftSquare, "["),
         ']' => self.make_token(TokenType::RightSquare, "]"),
+        '`' => self.make_token(TokenType::BackTick, "`"),
         '"' => self.string(),
         ':' => {
           self.label()},

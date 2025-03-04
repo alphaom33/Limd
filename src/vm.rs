@@ -2,7 +2,7 @@ use crate::stdlib;
 use std::vec;
 use std::slice;
 use std::ops::{Add, Sub, Mul, Div};
-use std::collections::HashMap;
+use std::collections::{LinkedList, HashMap};
 
 use crate::chunk::{Chunk, OpCode};
 use crate::value::Value;
@@ -107,6 +107,15 @@ impl VM {
             vals.push(self.stack.pop().expect("Vector length didn't match number of constants."));
           }
           self.stack.push(Value::Vector(vals));
+        },
+
+        OpCode::List => {
+          let len = Self::read_byte(&mut ip);
+            let mut vals: LinkedList<Value> = LinkedList::new();
+            for _ in 0..len {
+              vals.push_front(self.stack.pop().expect("Vector length didn't match number of constants."));
+            }
+            self.stack.push(Value::List(vals));
         },
 
         OpCode::Return => return InterpretResult::Ok(self.stack.pop()),

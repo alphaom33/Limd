@@ -60,13 +60,13 @@ impl Compiler {
     self.emit_bytes(OpCode::GetGlobal, name);
   }
   
-  fn items(&mut self) -> u8 {
+  fn items(&mut self, end: TokenType, op_code: OpCode) {
     let mut i = 0;
-    while !self.examine(TokenType::RightParen) && !self.check(TokenType::EOF) {
+    while !self.examine(end.clone()) && !self.check(TokenType::EOF) {
       self.list();
       i += 1;
     }
-    return i;
+    self.emit_bytes(op_code, i);
   }
 
   fn error(&mut self, message: &str) {
@@ -82,21 +82,15 @@ impl Compiler {
     self.error(message);
   }
 
-  fn make_vec(&mut self) {
-    let mut len = 0;
-    while !self.examine(TokenType::RightSquare) && !self.check(TokenType::EOF) {
-      self.list();
-      len += 1;
-    }
-    self.emit_bytes(OpCode::Vector, len);
-  }
-
   fn list(&mut self) {
-    if self.examine(TokenType::LeftParen) {
-      let num = self.items();
-      self.emit_bytes(OpCode::Call, num);
+    if self.examine(TokenType::BackTick) {
+      if (self.examine(TokenType::LeftParen)) {
+        self.items(TokenType::RightParen, OpCode::List);
+      }
+    } else if self.examine(TokenType::LeftParen) {
+      self.items(TokenType::RightParen, OpCode::Call);
     } else if self.examine(TokenType::LeftSquare) {
-      self.make_vec();
+      self.items(TokenType::RightSquare, OpCode::Vector);
     } else {
       self.immediate();
     }

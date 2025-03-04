@@ -8,6 +8,7 @@ pub enum OpCode {
   Call,
   GetGlobal,
   Vector,
+  List,
 }
 
 impl Into<u8> for OpCode {
