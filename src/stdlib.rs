@@ -26,13 +26,13 @@ macro_rules! binary_op {
         return Value::Number(sum);
       }
       return Value::Nil;
-    })
-  }
+     
+  })};
 }
 
 pub fn get() -> HashMap<String, Value> {
   return HashMap::from([
-    function("def", 1, false, |globals, args| {
+    function("def", 2, false, |globals, args| {
       match args[0].clone() {
         Value::Label(s) => globals.insert(s, args[1].clone()),
         _ => return Value::Nil,

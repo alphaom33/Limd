@@ -103,22 +103,21 @@ impl Compiler {
     }
   }
 
+  fn constant_instruction(&mut self, value: Value) {
+        self.advance();
+        let constant = self.add_constant(value);
+        self.emit_bytes(OpCode::Constant, constant);
+  }
+
   fn immediate(&mut self) {
-    if self.examine(TokenType::Number) {
-      let constant = self.add_constant(Value::Number(self.parser.previous.value.parse::<f64>().unwrap()));
-      self.emit_bytes(OpCode::Constant, constant);
-    } else if self.examine(TokenType::String) {
-      let constant = self.add_constant(Value::String(self.parser.previous.value.clone()));
-      self.emit_bytes(OpCode::Constant, constant);
-    } else if self.examine(TokenType::Label) {
-      println!("labeld");
-      let constant = self.add_constant(Value::Label(self.parser.previous.value.clone()));
-      self.emit_bytes(OpCode::Constant, constant);
-    } else if self.examine(TokenType::Nil) {
-      let constant = self.add_constant(Value::Nil);
-      self.emit_bytes(OpCode::Constant, constant);
-    }else if self.check(TokenType::Identifier) {
-      self.get_var();
+    match self.parser.current.token_type {
+      TokenType::Number => self.constant_instruction(Value::Number(self.parser.current.value.parse::<f64>().unwrap())),
+      TokenType::String => self.constant_instruction(Value::String(self.parser.current.value.clone())),
+      TokenType::Label => self.constant_instruction(Value::Label(self.parser.current.value.clone())),
+      TokenType::Identifier => self.get_var(),
+      TokenType::Nil => self.constant_instruction(Value::Nil),
+      TokenType::Bool => self.constant_instruction(Value::Boolean(self.parser.current.value == "true")),
+      _ => self.error(format!("Unexpected token {:?}", self.parser.current).as_str()),
     }
   }
 
@@ -126,7 +125,7 @@ impl Compiler {
     self.parser.previous = self.parser.current.clone();
     self.parser.current = self.scanner.scan_token();
   }
-  
+
   fn check(&mut self, token: TokenType) -> bool {
     return self.parser.current.token_type == token;
   }

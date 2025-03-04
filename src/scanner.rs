@@ -12,6 +12,7 @@ pub struct Scanner {
     Identifier,
     String,
     Nil,
+    Bool,
     Label,
     Error,
     EOF,
@@ -99,6 +100,8 @@ pub struct Scanner {
     fn keywords(&self, start: &str) -> Option<Token> {
       let tokens = [
         self.make_token(TokenType::Nil, "nil"),
+        self.make_token(TokenType::Bool, "true"),
+        self.make_token(TokenType::Bool, "false"),
       ];
 
       let names = tokens.clone().map(|x| x.value);
