@@ -60,10 +60,10 @@ impl Compiler {
     self.emit_bytes(OpCode::GetGlobal, name);
   }
   
-  fn args(&mut self) -> u8 {
+  fn items(&mut self) -> u8 {
     let mut i = 0;
     while !self.examine(TokenType::RightParen) && !self.check(TokenType::EOF) {
-      self.call();
+      self.list();
       i += 1;
     }
     return i;
@@ -82,31 +82,30 @@ impl Compiler {
     self.error(message);
   }
 
-  fn function(&mut self) {
-    
+  fn make_vec(&mut self) {
+    let mut len = 0;
+    while !self.examine(TokenType::RightSquare) && !self.check(TokenType::EOF) {
+      self.list();
+      len += 1;
+    }
+    self.emit_bytes(OpCode::Vector, len);
   }
 
-  fn call(&mut self) {
+  fn list(&mut self) {
     if self.examine(TokenType::LeftParen) {
-      match self.parser.current.token_type {
-        // add macros later to make this less worse hopefully
-        TokenType::Identifier if self.parser.current.value == "fn" => {
-          self.function();
-        },
-        _ => {
-          let num = self.args();
-          self.emit_bytes(OpCode::Call, num);
-        }
-      }
+      let num = self.items();
+      self.emit_bytes(OpCode::Call, num);
+    } else if self.examine(TokenType::LeftSquare) {
+      self.make_vec();
     } else {
       self.immediate();
     }
   }
 
   fn constant_instruction(&mut self, value: Value) {
-        self.advance();
-        let constant = self.add_constant(value);
-        self.emit_bytes(OpCode::Constant, constant);
+    self.advance();
+    let constant = self.add_constant(value);
+    self.emit_bytes(OpCode::Constant, constant);
   }
 
   fn immediate(&mut self) {
@@ -146,7 +145,7 @@ impl Compiler {
         break;
       }
       
-      self.call();
+      self.list();
     }
   }
 }

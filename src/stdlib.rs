@@ -1,4 +1,4 @@
-use crate::obj;
+use crate::obj::{self, Obj};
 use crate::value::Value;
 use std::collections::HashMap;
 

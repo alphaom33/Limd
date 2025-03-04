@@ -46,7 +46,8 @@ impl Chunk {
         OpCode::Return => self.simple_instruction("OP_RETURN", offset),
         OpCode::Constant => self.constant_instruction("OP_CONSTANT", offset),
         OpCode::Call => self.byte_instruction("OP_CALL", offset),
-        OpCode::GetGlobal => self.byte_instruction("OP_GET_GLOBAL", offset)
+        OpCode::GetGlobal => self.byte_instruction("OP_GET_GLOBAL", offset),
+        OpCode::Vector => self.byte_instruction("OP_VECTOR", offset),
       },
       None => self.simple_instruction(&format!("Unknown opcode {}", self.code[offset]), offset)
     }

@@ -7,7 +7,9 @@ pub struct Scanner {
   #[derive(Debug, PartialEq, Clone)]
   pub enum TokenType {
     LeftParen,  
-    RightParen,  
+    RightParen,
+    LeftSquare,
+    RightSquare,
     Number,
     Identifier,
     String,
@@ -158,6 +160,8 @@ pub struct Scanner {
       return match next {
         '(' => self.make_token(TokenType::LeftParen, "("),
         ')' => self.make_token(TokenType::RightParen, ")"),
+        '[' => self.make_token(TokenType::LeftSquare, "["),
+        ']' => self.make_token(TokenType::RightSquare, "]"),
         '"' => self.string(),
         ':' => {
           self.label()},

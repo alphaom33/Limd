@@ -100,6 +100,15 @@ impl VM {
           };
         }
         
+        OpCode::Vector => {
+          let len = Self::read_byte(&mut ip);
+          let mut vals: Vec<Value> = Vec::new();
+          for _ in 0..len {
+            vals.push(self.stack.pop().expect("Vector length didn't match number of constants."));
+          }
+          self.stack.push(Value::Vector(vals));
+        },
+
         OpCode::Return => return InterpretResult::Ok(self.stack.pop()),
       }
     }
