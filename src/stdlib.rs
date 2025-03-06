@@ -61,7 +61,7 @@ pub fn get() -> HashMap<String, Value> {
       };
       return Value::Nil;
     }),
-    function("print", 0, true, |_vm, args| {
+    function("!print", 0, true, |_vm, args| {
       for arg in args {
         print!("{} ", arg);
       }

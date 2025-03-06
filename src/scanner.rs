@@ -12,6 +12,7 @@ pub struct Scanner {
     RightSquare,
     Number,
     Identifier,
+    Macro,
     String,
     BackTick,
     Nil,
@@ -47,8 +48,7 @@ pub struct Scanner {
   
     fn match_identifier(&mut self) -> usize {
       let start = self.current - 1;
-      while let Some(s) = self.peek() {
-        self.advance();
+      while let Some(s) = self.advance() {
         if " \n\t,()".contains(s) {
           break;
         }
@@ -127,6 +127,20 @@ pub struct Scanner {
             line: self.line};
         }
     }
+
+    fn make_macro(&mut self) -> Token {
+      let start = self.match_identifier();
+      let value = &self.source[start..self.current - 1];
+    
+      if let Some(a) = self.keywords(value) {
+        return a;
+      } else {
+        return Token{
+          token_type: TokenType::Macro,
+          value: value.to_owned(),
+          line: self.line};
+      }
+    }
   
     fn skip_white(&mut self) {
       while let Some(c) = self.peek() {
@@ -145,8 +159,8 @@ pub struct Scanner {
       return self.source.chars().nth(self.current);
     }
   
-    fn advance(&mut self) -> char {
-      let out = self.peek().unwrap();
+    fn advance(&mut self) -> Option<char> {
+      let out = self.peek();
       self.current += 1;
       return out;
     }
@@ -157,12 +171,15 @@ pub struct Scanner {
         return self.make_token(TokenType::EOF, "");
       }
   
-      let next = self.advance();
+      let Some(next) = self.advance() else {
+        return self.make_token(TokenType::Error, "nothing to do");
+      };
       return match next {
         '(' => self.make_token(TokenType::LeftParen, "("),
         ')' => self.make_token(TokenType::RightParen, ")"),
         '[' => self.make_token(TokenType::LeftSquare, "["),
         ']' => self.make_token(TokenType::RightSquare, "]"),
+        '!' => self.make_macro(),
         '`' => self.make_token(TokenType::BackTick, "`"),
         '"' => self.string(),
         ':' => {

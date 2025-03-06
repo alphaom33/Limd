@@ -20,6 +20,7 @@ pub struct Compiler {
   current: usize,
   parser: Parser,
   scanner: Scanner,
+  is_evalutated: bool,
   pub chunk: chunk::Chunk,
   pub had_error: bool,
 }
@@ -30,6 +31,7 @@ impl Compiler {
       current: 0,
       scanner: Scanner::new(to_run),
       parser: Parser::new(),
+      is_evalutated: true,
       chunk: chunk::Chunk::new(),
       had_error: false,
     }
@@ -48,16 +50,6 @@ impl Compiler {
   
   fn emit_byte(&mut self, byte: OpCode) {
     self.chunk.write(byte, self.scanner.line);
-  }
-
-  fn get_name(&mut self) -> u8 {
-    self.consume(TokenType::Identifier, "Expected identifier.");
-    return self.add_constant(Value::String(self.parser.previous.value.clone()));
-  }
-  
-  fn get_var(&mut self) {
-    let name = self.get_name();
-    self.emit_bytes(OpCode::GetGlobal, name);
   }
   
   fn items(&mut self, end: TokenType, op_code: OpCode) {
@@ -84,11 +76,23 @@ impl Compiler {
 
   fn list(&mut self) {
     if self.examine(TokenType::BackTick) {
-      if (self.examine(TokenType::LeftParen)) {
+      if self.examine(TokenType::LeftParen) {
+        let last = self.is_evalutated;
+        self.is_evalutated = false;
         self.items(TokenType::RightParen, OpCode::List);
+        self.is_evalutated = last;
       }
     } else if self.examine(TokenType::LeftParen) {
-      self.items(TokenType::RightParen, OpCode::Call);
+      if self.is_evalutated && self.check(TokenType::Macro) {
+        let last = self.is_evalutated;
+        self.is_evalutated = false;
+        self.items(TokenType::RightParen, OpCode::Vector);
+        self.emit_byte(OpCode::Call);
+        self.is_evalutated = last;
+      } else {
+        self.items(TokenType::RightParen, OpCode::Vector);
+        if self.is_evalutated {self.emit_byte(OpCode::Call)}
+      }
     } else if self.examine(TokenType::LeftSquare) {
       self.items(TokenType::RightSquare, OpCode::Vector);
     } else {
@@ -103,15 +107,19 @@ impl Compiler {
   }
 
   fn immediate(&mut self) {
-    match self.parser.current.token_type {
-      TokenType::Number => self.constant_instruction(Value::Number(self.parser.current.value.parse::<f64>().unwrap())),
-      TokenType::String => self.constant_instruction(Value::String(self.parser.current.value.clone())),
-      TokenType::Label => self.constant_instruction(Value::Label(self.parser.current.value.clone())),
-      TokenType::Identifier => self.get_var(),
-      TokenType::Nil => self.constant_instruction(Value::Nil),
-      TokenType::Bool => self.constant_instruction(Value::Boolean(self.parser.current.value == "true")),
-      _ => self.error(format!("Unexpected token {:?}", self.parser.current).as_str()),
-    }
+    let val = match self.parser.current.token_type {
+      TokenType::Number => Value::Number(self.parser.current.value.parse::<f64>().unwrap()),
+      TokenType::String => Value::String(self.parser.current.value.clone()),
+      TokenType::Macro => Value::Symbol(self.parser.current.value.clone()),
+      TokenType::Identifier => Value::Symbol(self.parser.current.value.clone()),
+      TokenType::Nil => Value::Nil,
+      TokenType::Bool => Value::Boolean(self.parser.current.value == "true"),
+      _ =>  {
+        self.error(format!("Unexpected token {:?}", self.parser.previous).as_str());
+        Value::Symbol(self.parser.current.value.clone())
+      },
+    };
+    self.constant_instruction(val);
   }
 
   fn advance(&mut self) {

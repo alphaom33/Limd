@@ -9,6 +9,7 @@ pub enum Value {
   Number(f64),
   String(String),
   Label(String),
+  Symbol(String),
   List(LinkedList<Value>),
   Vector(Vec<Value>),
   Object(Box<Obj>),
@@ -22,6 +23,7 @@ impl Value {
       Self::Number(n) => *n != 0.0,
       Self::String(s) => !s.is_empty(),
       Self::Label(_) => true,
+      Self::Symbol(s) => true,
       Self::List(l) => l.len() != 0,
       Self::Vector(v) => v.len() != 0,
       Self::Object(_) => true,
@@ -37,6 +39,7 @@ impl Display for Value {
       Value::Number(n) => write!(f, "{}", n),
       Value::String(s) => write!(f, "{}", s),
       Value::Label(s) => write!(f, "{}", s),
+      Value::Symbol(s) => write!(f, "<symbol {}>", s),
       Value::List(l) => {
         if let Result::Err(e) =  write!(f, "( ") {return Result::Err(e);}
         for val in l {

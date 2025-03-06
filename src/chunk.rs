@@ -6,7 +6,6 @@ pub enum OpCode {
   Return,
   Constant,
   Call,
-  GetGlobal,
   Vector,
   List,
 }

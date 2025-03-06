@@ -1,4 +1,7 @@
+use crate::obj::Obj;
 use crate::stdlib;
+use std::fmt;
+use std::fmt::Error;
 use std::vec;
 use std::slice;
 use std::ops::{Add, Sub, Mul, Div};
@@ -6,7 +9,6 @@ use std::collections::{LinkedList, HashMap};
 
 use crate::chunk::{Chunk, OpCode};
 use crate::value::Value;
-use crate::obj;
 use enum_index::IndexEnum;
 
 pub struct VM {
@@ -44,6 +46,47 @@ impl VM {
     return chunk.constants[a].clone();
   }
 
+  fn get_var(&mut self, name: &str) -> InterpretResult {
+    match self.globals.get(name) {
+      Some(v) => return InterpretResult::Ok(Some(v.clone())),
+      None => return InterpretResult::RuntimeError(std::format!("{name} is not defined.")),
+    }
+  }
+
+  fn call_val(&mut self) -> InterpretResult {
+    let Some(Value::Vector(mut args)) = self.stack.pop() else {
+      return InterpretResult::RuntimeError("expected list??".to_owned());
+    };
+    
+    let Some(Value::Symbol(name)) = args.pop() else {
+      return InterpretResult::RuntimeError("Expected Symbol".to_owned());
+    };
+    
+    let var_result = self.get_var(&name);
+    let InterpretResult::Ok(Some(to_call)) = var_result else {
+      return var_result;
+    };
+
+    match to_call {
+      Value::Object(o) => match *o {
+        Obj::Function(f) => {
+        }
+        
+        Obj::Native(f) => {
+          if !f.varargs && args.len() != f.arity as usize {
+            return InterpretResult::RuntimeError(format!("Exected {} args, but {} where given.", f.arity, args.len()))
+          }
+          args.reverse();
+          let out = (f.function)(&mut self.globals, &mut args);
+          self.stack.push(out);
+        }
+      },
+      _ => return InterpretResult::RuntimeError("Only functions can be called.".to_owned()),
+    };
+
+    return InterpretResult::Ok(None);
+  }
+
   fn run(&mut self, chunk: Box<Chunk>) -> InterpretResult {
     let mut ip = chunk.code.iter();
     while let Some(byte) = ip.next() {
@@ -56,47 +99,15 @@ impl VM {
       
       let op_code = OpCode::index_enum(*byte as usize).expect("Invalid opcode");
       match op_code {
-        OpCode::GetGlobal => {
-          let name = Self::read_constant(&mut ip,  *chunk.clone());
-          match name {
-            Value::String(s) => {
-              match self.globals.get(&s) {
-                Some(s) => {
-                   self.stack.push(s.clone())},
-                None => return InterpretResult::RuntimeError(std::format!("{s} is not defined.")),
-              }
-            },
-            _ => return InterpretResult::RuntimeError("??????".to_owned()),
-          };
-        }
-        
         OpCode::Constant => {
           let constant = Self::read_constant(&mut ip, *chunk.clone());
           self.stack.push(constant);
         },
 
         OpCode::Call => {
-          let arity = Self::read_byte(&mut ip);
-          let mut args = vec::Vec::<Value>::new();
-          for _ in 0..arity {
-            args.push(self.stack.pop().unwrap());
-          }
-          
-          match args.pop().unwrap() {
-            Value::Object(o) => match *o {
-              obj::Obj::Function(f) => {
-              }
-              
-              obj::Obj::Native(f) => {
-                if !f.varargs && args.len() != f.arity as usize {
-                  return InterpretResult::RuntimeError(format!("Exected {} args, but {} where given.", f.arity, args.len()))
-                }
-                args.reverse();
-                let out = (f.function)(&mut self.globals, &mut args);
-                self.stack.push(out);
-              }
-            },
-            _ => return InterpretResult::RuntimeError("Only functions can be called.".to_owned()),
+          let result = self.call_val();
+          let InterpretResult::Ok(_) = result else {
+            return result;
           };
         }
         
@@ -113,7 +124,7 @@ impl VM {
           let len = Self::read_byte(&mut ip);
             let mut vals: LinkedList<Value> = LinkedList::new();
             for _ in 0..len {
-              vals.push_front(self.stack.pop().expect("Vector length didn't match number of constants."));
+              vals.push_front(self.stack.pop().expect(std::format!("List length was shorter than the expected {len}").as_str()));
             }
             self.stack.push(Value::List(vals));
         },

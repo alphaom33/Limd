@@ -45,8 +45,7 @@ impl Chunk {
       Some(op_code) => match op_code {
         OpCode::Return => self.simple_instruction("OP_RETURN", offset),
         OpCode::Constant => self.constant_instruction("OP_CONSTANT", offset),
-        OpCode::Call => self.byte_instruction("OP_CALL", offset),
-        OpCode::GetGlobal => self.byte_instruction("OP_GET_GLOBAL", offset),
+        OpCode::Call => self.simple_instruction("OP_CALL", offset),
         OpCode::Vector => self.byte_instruction("OP_VECTOR", offset),
         OpCode::List => self.byte_instruction("OP_LIST", offset),
       },
