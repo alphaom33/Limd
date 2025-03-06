@@ -20,7 +20,6 @@ pub struct Compiler {
   current: usize,
   parser: Parser,
   scanner: Scanner,
-  is_evalutated: bool,
   pub chunk: chunk::Chunk,
   pub had_error: bool,
 }
@@ -31,7 +30,6 @@ impl Compiler {
       current: 0,
       scanner: Scanner::new(to_run),
       parser: Parser::new(),
-      is_evalutated: true,
       chunk: chunk::Chunk::new(),
       had_error: false,
     }
@@ -77,26 +75,24 @@ impl Compiler {
   fn list(&mut self) {
     if self.examine(TokenType::BackTick) {
       if self.examine(TokenType::LeftParen) {
-        let last = self.is_evalutated;
-        self.is_evalutated = false;
+        self.emit_byte(OpCode::Nexecute);
         self.items(TokenType::RightParen, OpCode::List);
-        self.is_evalutated = last;
+        self.emit_byte(OpCode::Yexecute);
       }
     } else if self.examine(TokenType::LeftParen) {
-      if self.is_evalutated && self.check(TokenType::Macro) {
-        let last = self.is_evalutated;
-        self.is_evalutated = false;
+      if self.check(TokenType::Macro) {
+        self.emit_byte(OpCode::Nexecute);
         self.items(TokenType::RightParen, OpCode::Vector);
-        self.emit_byte(OpCode::Call);
-        self.is_evalutated = last;
+        self.emit_byte(OpCode::Yexecute);
+        self.emit_byte(OpCode::CallMacro)
       } else {
         self.items(TokenType::RightParen, OpCode::Vector);
-        if self.is_evalutated {self.emit_byte(OpCode::Call)}
+        self.emit_byte(OpCode::Call);
       }
     } else if self.examine(TokenType::LeftSquare) {
-      self.items(TokenType::RightSquare, OpCode::Vector);
+      self.items(TokenType::RightSquare, OpCode::List);
     } else {
-      self.immediate();
+      self.identifier();
     }
   }
 
@@ -106,18 +102,22 @@ impl Compiler {
     self.emit_bytes(OpCode::Constant, constant);
   }
 
+  fn identifier(&mut self) {
+    if self.examine(TokenType::Identifier) || self.examine(TokenType::Macro) {
+      let index = self.add_constant(Value::Symbol(self.parser.previous.value.clone()));
+      self.emit_bytes(OpCode::GetGlobal, index);
+    } else {
+      self.immediate();
+    }
+  }
+
   fn immediate(&mut self) {
     let val = match self.parser.current.token_type {
       TokenType::Number => Value::Number(self.parser.current.value.parse::<f64>().unwrap()),
       TokenType::String => Value::String(self.parser.current.value.clone()),
-      TokenType::Macro => Value::Symbol(self.parser.current.value.clone()),
-      TokenType::Identifier => Value::Symbol(self.parser.current.value.clone()),
       TokenType::Nil => Value::Nil,
       TokenType::Bool => Value::Boolean(self.parser.current.value == "true"),
-      _ =>  {
-        self.error(format!("Unexpected token {:?}", self.parser.previous).as_str());
-        Value::Symbol(self.parser.current.value.clone())
-      },
+      _ => return,
     };
     self.constant_instruction(val);
   }

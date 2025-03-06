@@ -5,9 +5,13 @@ use crate::value;
 pub enum OpCode {
   Return,
   Constant,
-  Call,
   Vector,
   List,
+  Call,
+  CallMacro,
+  Yexecute,
+  Nexecute,
+  GetGlobal,
 }
 
 impl Into<u8> for OpCode {
