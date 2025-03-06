@@ -125,11 +125,11 @@ impl VM {
     while let Some(byte) = ip.next() {
 
       print!("          ");
+      if !self.can_execute() {
+        print!("x ");
+      }
       for slot in &self.stack {
         print!("[ {} ]", slot);
-      }
-      if !self.can_execute() {
-        print!("x");
       }
       println!();
       
@@ -190,10 +190,12 @@ impl VM {
           },
 
           OpCode::CallMacro => {
-            let result = self.call_macro();
-            let InterpretResult::Ok(_) = result else {
-              return result;
-            };
+            if self.can_execute() {
+              let result = self.call_macro();
+              let InterpretResult::Ok(_) = result else {
+                return result;
+              };
+            }
           },
           
           OpCode::Nexecute => self.execute_num += 1,
