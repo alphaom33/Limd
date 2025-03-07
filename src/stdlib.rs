@@ -56,6 +56,12 @@ macro_rules! binary_op2 {
 
 pub fn get() -> HashMap<String, Value> {
   return HashMap::from([
+    function("!if", 3, false, true, |_vm, args| {
+      if let Value::Boolean(b) = args[0].clone() {
+        return args[if b {1} else {2}].clone();
+      }
+      return Value::Nil;
+    }),
     function("!def", 2, false, true, |vm, args| {
       if let Value::Symbol(s) = args[0].clone() {
         let result = vm.do_call(args[1].clone());
