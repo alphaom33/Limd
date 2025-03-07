@@ -64,8 +64,22 @@ impl VM {
     return self.get_var(&s);
   }
 
-  fn do_call(&mut self, to_call: Value) {
-
+  pub fn do_call(&mut self, to_call: Value) -> InterpretResult {
+    match to_call {
+      Value::Vector(v) => {
+        let mut args = Vec::new();
+        for arg in v {
+          let result = self.do_call(arg);
+          let InterpretResult::Ok(Some(val)) = result else {
+            return result;
+          };
+          args.push(val);
+        };
+        return self.call_value(&mut args);
+      },
+      Value::Symbol(s) => self.get_var(&s),
+      _ => return InterpretResult::Ok(Some(to_call)),
+    }
   }
 
   fn call_value(&mut self, mut args: &mut Vec<Value>) -> InterpretResult {
@@ -79,13 +93,9 @@ impl VM {
             return InterpretResult::RuntimeError(format!("Exected {} args, but {} were given.", f.arity, args.len()))
           }
           args.reverse();
-          let out = (f.function)(&mut self.globals, &mut args);
+          let out = (f.function)(self, &mut args);
 
-          if f.is_macro {
-            self.do_call(out);
-          } else {
-            self.stack.push(out);
-          }
+          return InterpretResult::Ok(Some(out));
         }
       },
       _ => return InterpretResult::RuntimeError("Only functions can be called.".to_owned()),
@@ -96,7 +106,7 @@ impl VM {
 
   fn call_macro(&mut self) -> InterpretResult {
     let Some(Value::Vector(mut args)) = self.stack.pop() else {
-      return InterpretResult::RuntimeError("Expected lit??".to_owned());
+      return InterpretResult::RuntimeError("Expected list??".to_owned());
     };
 
     let result = self.resolve_var(args.pop().expect("can't call nothin'"));
@@ -105,7 +115,12 @@ impl VM {
     };
 
     args.push(val);
-    return self.call_value(&mut args);
+    let result  = self.call_value(&mut args);
+    if let InterpretResult::Ok(Some(out)) = result {
+      return self.do_call(out);
+    } else {
+      return result;
+    }
   }
 
   fn call_vec(&mut self) -> InterpretResult {
@@ -183,7 +198,9 @@ impl VM {
           OpCode::Call => {
             if self.can_execute() {
               let result = self.call_vec();
-              let InterpretResult::Ok(_) = result else {
+              if let InterpretResult::Ok(Some(v)) = result {
+                self.stack.push(v);
+              } else {
                 return result;
               };
             }

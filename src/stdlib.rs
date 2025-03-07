@@ -1,8 +1,9 @@
+use crate::vm::{InterpretResult, VM};
 use crate::obj::{self, Obj};
 use crate::value::Value;
 use std::collections::HashMap;
 
-fn function(name: &str, arity: u8, varargs: bool, is_macro: bool, function: fn(&mut HashMap<String, Value>, &mut [Value]) -> Value) -> (String, Value) {
+fn function(name: &str, arity: u8, varargs: bool, is_macro: bool, function: fn(&mut VM, &mut [Value]) -> Value) -> (String, Value) {
   return (
     name.to_owned(),
     Value::Object(Box::new(obj::Obj::Native(obj::Native{
@@ -55,11 +56,16 @@ macro_rules! binary_op2 {
 
 pub fn get() -> HashMap<String, Value> {
   return HashMap::from([
-    function("!def", 2, false, true, |globals, args| {
-      match args[0].clone() {
-        Value::Symbol(s) => globals.insert(s, args[1].clone()),
-        _ => return Value::Nil,
-      };
+    function("!def", 2, false, true, |vm, args| {
+      if let Value::Symbol(s) = args[0].clone() {
+        let result = vm.do_call(args[1].clone());
+        vm.globals.insert(s,
+           if let InterpretResult::Ok(Some(s)) = result {
+            s
+          } else {
+            return Value::Nil;
+          });
+      } 
       return Value::Nil;
     }),
     function("print", 0, true, false, |_vm, args| {

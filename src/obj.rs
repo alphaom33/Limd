@@ -25,7 +25,7 @@ impl Display for Obj {
 pub struct Native {
   pub arity: u8,
   pub varargs: bool,
-  pub function: fn(&mut HashMap<String, Value>, &mut [Value]) -> Value,
+  pub function: fn(&mut VM, &mut [Value]) -> Value,
   pub is_macro: bool,
 }
 
