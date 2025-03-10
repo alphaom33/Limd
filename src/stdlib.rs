@@ -77,6 +77,32 @@ pub fn get() -> HashMap<String, Value> {
         return InterpretResult::Err(format!("Expected symbol, got {}", args[0]));
       }
     }),
+    function ("!or", 0, true, true, |vm, args| {
+      for arg in args {
+        let result = vm.do_call(arg.clone());
+        if let InterpretResult::Ok(arg) = result {
+          if arg.is_truthy() {
+            return InterpretResult::Ok(Value::Boolean(true));
+          }
+        } else {
+          return result;
+        }
+      }
+      return InterpretResult::Ok(Value::Boolean(false));
+    }),
+    function ("!and", 0, true, true, |vm, args| {
+      for arg in args {
+        let result = vm.do_call(arg.clone());
+        if let InterpretResult::Ok(arg) = result {
+          if !arg.is_truthy() {
+            return InterpretResult::Ok(Value::Boolean(false));
+          }
+        } else {
+          return result;
+        }
+      }
+      return InterpretResult::Ok(Value::Boolean(true));
+    }),
     function("print", 0, true, false, |_vm, args| {
       for arg in args {
         print!("{} ", arg);
