@@ -3,7 +3,7 @@ use crate::obj::{self, Obj};
 use crate::value::Value;
 use std::collections::HashMap;
 
-fn function(name: &str, arity: u8, varargs: bool, is_macro: bool, function: fn(&mut VM, &mut [Value]) -> Value) -> (String, Value) {
+fn function(name: &str, arity: u8, varargs: bool, is_macro: bool, function: fn(&mut VM, &mut [Value]) -> InterpretResult) -> (String, Value) {
   return (
     name.to_owned(),
     Value::Object(Box::new(obj::Obj::Native(obj::Native{
@@ -22,12 +22,13 @@ macro_rules! binary_op {
         for arg in rest {
           match arg {
             Value::Number(n) => sum = sum $op n,
-            _ => return Value::Nil,
+            _ => return InterpretResult::Err(format!("Expected number, got {arg}")),
           }
         }
-        return Value::Number(sum);
+        return InterpretResult::Ok(Value::Number(sum));
+      } else {
+        return InterpretResult::Err(format!("Expected number, got {}", args[0]));
       }
-      return Value::Nil;
      
   })};
 }
@@ -41,7 +42,7 @@ macro_rules! binary_op2 {
           match arg {
             Value::Number(n) => {
               if !(last $op *n) {
-                return Value::Boolean(false);
+                return InterpretResult::Ok(Value::Boolean(false));
               }
               last = *n;
             },
@@ -49,7 +50,7 @@ macro_rules! binary_op2 {
           }
         }
       }
-      return Value::Boolean(true);
+      return InterpretResult::Ok(Value::Boolean(true));
      
   })};
 }
@@ -58,27 +59,29 @@ pub fn get() -> HashMap<String, Value> {
   return HashMap::from([
     function("!if", 3, false, true, |_vm, args| {
       if let Value::Boolean(b) = args[0].clone() {
-        return args[if b {1} else {2}].clone();
+        return InterpretResult::Ok(args[if b {1} else {2}].clone());
       }
-      return Value::Nil;
+      return InterpretResult::Err(format!("Expected bool, got {}", args[0]));
     }),
     function("!def", 2, false, true, |vm, args| {
       if let Value::Symbol(s) = args[0].clone() {
         let result = vm.do_call(args[1].clone());
         vm.globals.insert(s,
-           if let InterpretResult::Ok(Some(s)) = result {
+           if let InterpretResult::Ok(s) = result {
             s
           } else {
-            return Value::Nil;
+            return result;
           });
-      } 
-      return Value::Nil;
+        return InterpretResult::Ok(Value::Nil);
+      } else { 
+        return InterpretResult::Err(format!("Expected symbol, got {}", args[0]));
+      }
     }),
     function("print", 0, true, false, |_vm, args| {
       for arg in args {
         print!("{} ", arg);
       }
-      return Value::Nil;
+      return InterpretResult::Ok(Value::Nil);
     }),
     binary_op!(+),
     binary_op!(-),

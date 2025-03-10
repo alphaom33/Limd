@@ -1,4 +1,4 @@
-use crate::vm::VM;
+use crate::vm::{InterpretResult, VM};
 use crate::value::Value;
 use crate::chunk::Chunk;
 
@@ -25,7 +25,7 @@ impl Display for Obj {
 pub struct Native {
   pub arity: u8,
   pub varargs: bool,
-  pub function: fn(&mut VM, &mut [Value]) -> Value,
+  pub function: fn(&mut VM, &mut [Value]) -> InterpretResult,
   pub is_macro: bool,
 }
 

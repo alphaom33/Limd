@@ -18,12 +18,7 @@ pub struct VM {
   execute_num: u8,
 }
 
-#[derive(PartialEq, Debug)]
-pub enum InterpretResult {
-  Ok(Option<Value>),
-  CompileError,
-  RuntimeError(String),
-}
+pub type InterpretResult = Result<Value, String>;
 
 impl VM {
   pub fn new() -> VM {
@@ -51,14 +46,14 @@ impl VM {
 
   fn get_var(&mut self, name: &str) -> InterpretResult {
     return match self.globals.get(name) {
-      Some(v) => InterpretResult::Ok(Some(v.clone())),
-      None => InterpretResult::RuntimeError(std::format!("{name} is not defined.")),
+      Some(v) => InterpretResult::Ok(v.clone()),
+      None => InterpretResult::Err(std::format!("{name} is not defined.")),
     }
   }
 
   fn resolve_var(&mut self, name: Value) -> InterpretResult {
     let Value::Symbol(s) = name else {
-      return InterpretResult::RuntimeError(format!("I wanted a symbol, you idiot not {}", name));
+      return InterpretResult::Err(format!("I wanted a symbol, you idiot not {}", name));
     };
 
     return self.get_var(&s);
@@ -70,7 +65,7 @@ impl VM {
         let mut args = Vec::new();
         for arg in v {
           let result = self.do_call(arg);
-          let InterpretResult::Ok(Some(val)) = result else {
+          let InterpretResult::Ok(val) = result else {
             return result;
           };
           args.push(val);
@@ -78,7 +73,7 @@ impl VM {
         return self.call_value(&mut args);
       },
       Value::Symbol(s) => self.get_var(&s),
-      _ => return InterpretResult::Ok(Some(to_call)),
+      _ => return InterpretResult::Ok(to_call),
     }
   }
 
@@ -90,33 +85,32 @@ impl VM {
         
         Obj::Native(f) => {
           if !f.varargs && args.len() != f.arity as usize {
-            return InterpretResult::RuntimeError(format!("Exected {} args, but {} were given.", f.arity, args.len()))
+            return InterpretResult::Err(format!("Exected {} args, but {} were given.", f.arity, args.len()))
           }
           args.reverse();
-          let out = (f.function)(self, &mut args);
+          return (f.function)(self, &mut args);
 
-          return InterpretResult::Ok(Some(out));
         }
       },
-      _ => return InterpretResult::RuntimeError("Only functions can be called.".to_owned()),
+      _ => return InterpretResult::Err("Only functions can be called.".to_owned()),
     };
 
-    return InterpretResult::Ok(None);
+    return InterpretResult::Ok(Value::Nil);
   }
 
   fn call_macro(&mut self) -> InterpretResult {
     let Some(Value::Vector(mut args)) = self.stack.pop() else {
-      return InterpretResult::RuntimeError("Expected list??".to_owned());
+      return InterpretResult::Err("Expected list??".to_owned());
     };
 
     let result = self.resolve_var(args.pop().expect("can't call nothin'"));
-    let InterpretResult::Ok(Some(val)) =  result else {
+    let InterpretResult::Ok(val) =  result else {
       return result;
     };
 
     args.push(val);
     let result  = self.call_value(&mut args);
-    if let InterpretResult::Ok(Some(out)) = result {
+    if let InterpretResult::Ok(out) = result {
       return self.do_call(out);
     } else {
       return result;
@@ -125,7 +119,7 @@ impl VM {
 
   fn call_vec(&mut self) -> InterpretResult {
     let Some(Value::Vector(mut args)) = self.stack.pop() else {
-      return InterpretResult::RuntimeError("expected list??".to_owned());
+      return InterpretResult::Err("expected list??".to_owned());
     };
     
     return self.call_value(&mut args);
@@ -165,15 +159,15 @@ impl VM {
             }
 
             let Value::Symbol(name) = val else {
-              return InterpretResult::RuntimeError("you were supposed to give me a symbol, you idiot".to_owned());
+              return InterpretResult::Err("you were supposed to give me a symbol, you idiot".to_owned());
             };
 
 
             let InterpretResult::Ok(result) = self.get_var(name) else {
-              return InterpretResult::RuntimeError(format!("{name} is not defined"));
+              return InterpretResult::Err(format!("{name} is not defined"));
             };
 
-            self.stack.push(result.unwrap());
+            self.stack.push(result);
           },
           
           OpCode::Vector => {
@@ -198,7 +192,7 @@ impl VM {
           OpCode::Call => {
             if self.can_execute() {
               let result = self.call_vec();
-              if let InterpretResult::Ok(Some(v)) = result {
+              if let InterpretResult::Ok(v) = result {
                 self.stack.push(v);
               } else {
                 return result;
@@ -209,19 +203,20 @@ impl VM {
           OpCode::CallMacro => {
             if self.can_execute() {
               let result = self.call_macro();
-              let InterpretResult::Ok(_) = result else {
+              let InterpretResult::Ok(val) = result else {
                 return result;
               };
+              self.stack.push(val);
             }
           },
           
           OpCode::Nexecute => self.execute_num += 1,
           OpCode::Yexecute => self.execute_num -= 1,
 
-          OpCode::Return => return InterpretResult::Ok(self.stack.pop()),
+          OpCode::Return => return InterpretResult::Ok(self.stack.pop().expect("Nothing on stack??")),
         }
       }
     }
-    return InterpretResult::Ok(self.stack.pop());
+    return InterpretResult::Err("Probably should be a return somewhere".to_owned())
   }
 }

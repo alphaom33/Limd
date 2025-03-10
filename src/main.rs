@@ -15,6 +15,10 @@ mod obj;
 mod compiler;
 mod stdlib;
 
+use crate::vm::InterpretResult;
+use crate::value::Value;
+use crate::compiler::Compiler;
+
 fn main() {
   if env::args().len() == 1 {
     repl();
@@ -50,8 +54,8 @@ fn file() {
   run(&mut vm::VM::new(), file);
 }
 
-fn run(vm: &mut vm::VM, to_run: String) -> Option<value::Value> {
-  let mut compiler = compiler::Compiler::new(to_run);
+fn run(vm: &mut vm::VM, to_run: String) -> Option<Value> {
+  let mut compiler = Compiler::new(to_run);
   compiler.compile();
 
   if compiler.had_error {
@@ -60,11 +64,11 @@ fn run(vm: &mut vm::VM, to_run: String) -> Option<value::Value> {
   compiler.chunk.disassemble("test");
 
   return match vm.interpret(Box::new(compiler.chunk)) {
-    vm::InterpretResult::RuntimeError(s) => {
+    InterpretResult::Err(s) => {
       println!("{s}");
       None
     },
-    vm::InterpretResult::Ok(s) => s,
+    InterpretResult::Ok(s) => Some(s),
     _ => None,
   }
 }
