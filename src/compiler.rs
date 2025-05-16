@@ -1,3 +1,4 @@
+use crate::obj::Obj;
 use crate::value::Value;
 use crate::chunk::{self, OpCode};
 use crate::scanner::{Scanner, TokenType, Token};
@@ -9,7 +10,7 @@ struct Parser {
 
 impl Parser {
   pub fn new() -> Parser {
-    Parser { 
+    Parser {
       previous: Token{token_type: TokenType::Error, value: String::new(), line: 0},
       current: Token{token_type: TokenType::Error, value: String::new(), line: 0},
     }
@@ -40,16 +41,16 @@ impl Compiler {
     self.chunk.add_constant(value);
     return u8::try_from(self.chunk.constants.len() - 1).ok().unwrap();
   }
-  
+
   fn emit_bytes(&mut self, byte1: OpCode, byte2: u8) {
     self.chunk.write(byte1, self.current);
     self.chunk.write(byte2, self.current + 1);
   }
-  
+
   fn emit_byte(&mut self, byte: OpCode) {
     self.chunk.write(byte, self.scanner.line);
   }
-  
+
   fn items(&mut self, end: TokenType, op_code: OpCode) {
     let mut i = 0;
     while !self.examine(end.clone()) && !self.check(TokenType::EOF) {
@@ -72,19 +73,58 @@ impl Compiler {
     self.error(message);
   }
 
+  fn back_tick_list(&mut self) {
+    if self.examine(TokenType::LeftParen) {
+      self.emit_byte(OpCode::Nexecute);
+      self.items(TokenType::RightParen, OpCode::List);
+      self.emit_byte(OpCode::Yexecute);
+    }
+  }
+
+  fn function(&mut self) {
+    self.consume(TokenType::Identifier, "Expected identifier.");
+    let name = &self.parser.previous.value;
+    self.consume(TokenType::LeftSquare, "Expected list.");
+    self.consume(TokenType::RightSquare, "");
+    // let mut arg_names = Vec::new();
+    // while !self.examine(TokenType::RightSquare) {
+    //   arg_names.push(self.parser.current.value.clone());
+    //   self.advance();
+    // }
+    let mut compiler = Compiler{
+      current: 0,
+      scanner: Scanner::new(self.scanner.source[self.scanner.current..].to_owned()),
+      parser: Parser::new(),
+      chunk: chunk::Chunk::new(),
+      had_error: false,
+    };
+
+    while !compiler.examine(TokenType::RightParen) {
+      compiler.list();
+    }
+    self.parser.current = compiler.parser.current;
+    self.parser.previous = compiler.parser.previous;
+    let thing = self.add_constant(Value::Object(Box::new(Obj::Function{
+      compiler.chunk
+    })));
+    self.emit_bytes(OpCode::SetGlobal, thing);
+  }
+
+  fn make_macro(&mut self) {
+    self.emit_byte(OpCode::Nexecute);
+    self.items(TokenType::RightParen, OpCode::Vector);
+    self.emit_byte(OpCode::Yexecute);
+    self.emit_byte(OpCode::CallMacro)
+  }
+
   fn list(&mut self) {
     if self.examine(TokenType::BackTick) {
-      if self.examine(TokenType::LeftParen) {
-        self.emit_byte(OpCode::Nexecute);
-        self.items(TokenType::RightParen, OpCode::List);
-        self.emit_byte(OpCode::Yexecute);
-      }
+      self.back_tick_list();
     } else if self.examine(TokenType::LeftParen) {
-      if self.check(TokenType::Macro) {
-        self.emit_byte(OpCode::Nexecute);
-        self.items(TokenType::RightParen, OpCode::Vector);
-        self.emit_byte(OpCode::Yexecute);
-        self.emit_byte(OpCode::CallMacro)
+      if self.examine(TokenType::Fn) {
+        self.function();
+      } if self.check(TokenType::Macro) {
+        self.make_macro();
       } else {
         self.items(TokenType::RightParen, OpCode::Vector);
         self.emit_byte(OpCode::Call);
@@ -138,7 +178,7 @@ impl Compiler {
     }
     return false;
   }
-  
+
   pub fn compile(&mut self) {
     self.advance();
     loop {
@@ -146,7 +186,7 @@ impl Compiler {
         self.emit_byte(OpCode::Return);
         break;
       }
-      
+
       self.list();
     }
   }

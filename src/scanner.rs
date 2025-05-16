@@ -3,10 +3,10 @@ pub struct Scanner {
     pub source: String,
     pub current: usize,
   }
-  
+
   #[derive(Debug, PartialEq, Clone)]
   pub enum TokenType {
-    LeftParen,  
+    LeftParen,
     RightParen,
     LeftSquare,
     RightSquare,
@@ -20,24 +20,25 @@ pub struct Scanner {
     Label,
     Error,
     EOF,
+    Fn
   }
-  
+
   #[derive(Debug, Clone)]
   pub struct Token {
     pub token_type: TokenType,
     pub value: String,
     pub line: usize,
   }
-  
+
   impl Scanner {
     pub fn new(source: String) -> Self {
-      return Self { 
+      return Self {
         line: 0,
         source,
         current: 0
       };
     }
-  
+
     fn make_token(&self, token_type: TokenType, value: &str) -> Token {
       return Token {
         token_type,
@@ -45,7 +46,7 @@ pub struct Scanner {
         line: self.line,
       }
     }
-  
+
     fn match_identifier(&mut self) -> usize {
       let start = self.current - 1;
       while let Some(s) = self.advance() {
@@ -56,7 +57,7 @@ pub struct Scanner {
 
       return start;
     }
-  
+
     fn string(&mut self) -> Token {
       let start = self.current;
       while self.peek().unwrap() != '"' {
@@ -64,14 +65,14 @@ pub struct Scanner {
         self.advance();
       }
       self.advance();
-      
+
       return Token{
         token_type: TokenType::String,
         value: self.source[start..self.current - 1].to_owned(),
         line: self.line,
       }
     }
-    
+
     fn label(&mut self) -> Token {
       self.advance();
       let start = self.match_identifier();
@@ -82,29 +83,30 @@ pub struct Scanner {
         line: self.line
       };
     }
-    
+
     fn number(&mut self) -> Token {
       let start = self.current - 1;
       while let Some(s) = self.peek() {
         if !s.is_numeric() {
           break;
         }
-  
+
         self.advance();
       }
-  
+
       return Token{
         token_type: TokenType::Number,
         value: self.source[start..self.current].to_owned(),
         line: self.line,
       }
     }
-  
+
     fn keywords(&self, start: &str) -> Option<Token> {
       let tokens = [
         self.make_token(TokenType::Nil, "nil"),
         self.make_token(TokenType::Bool, "true"),
         self.make_token(TokenType::Bool, "false"),
+        self.make_token(TokenType::Fn, "!fn"),
       ];
 
       let names = tokens.clone().map(|x| x.value);
@@ -113,11 +115,11 @@ pub struct Scanner {
       }
       return None;
     }
-  
+
     fn identifier(&mut self) -> Token {
         let start = self.match_identifier();
         let value = &self.source[start..self.current - 1];
-      
+
         if let Some(a) = self.keywords(value) {
           return a;
         } else {
@@ -131,7 +133,7 @@ pub struct Scanner {
     fn make_macro(&mut self) -> Token {
       let start = self.match_identifier();
       let value = &self.source[start..self.current - 1];
-    
+
       if let Some(a) = self.keywords(value) {
         return a;
       } else {
@@ -141,7 +143,7 @@ pub struct Scanner {
           line: self.line};
       }
     }
-  
+
     fn skip_white(&mut self) {
       while let Some(c) = self.peek() {
         match c {
@@ -151,26 +153,26 @@ pub struct Scanner {
           }
           ' ' | '\r' | '\t' => self.current += 1,
           _ => break,
-        }    
+        }
       }
     }
-  
+
     fn peek(&mut self) -> Option<char> {
       return self.source.chars().nth(self.current);
     }
-  
+
     fn advance(&mut self) -> Option<char> {
       let out = self.peek();
       self.current += 1;
       return out;
     }
-    
+
     pub fn scan_token(&mut self) -> Token {
       self.skip_white();
       if self.peek().is_none() {
         return self.make_token(TokenType::EOF, "");
       }
-  
+
       let Some(next) = self.advance() else {
         return self.make_token(TokenType::Error, "nothing to do");
       };

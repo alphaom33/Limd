@@ -1,3 +1,4 @@
+use crate::compiler::{self, Compiler};
 use crate::vm::{InterpretResult, VM};
 use crate::obj::{self, Obj};
 use crate::value::Value;
@@ -29,7 +30,7 @@ macro_rules! binary_op {
       } else {
         return InterpretResult::Err(format!("Expected number, got {}", args[0]));
       }
-     
+
   })};
 }
 
@@ -51,7 +52,7 @@ macro_rules! binary_op2 {
         }
       }
       return InterpretResult::Ok(Value::Boolean(true));
-     
+
   })};
 }
 
@@ -73,7 +74,7 @@ pub fn get() -> HashMap<String, Value> {
             return result;
           });
         return InterpretResult::Ok(Value::Nil);
-      } else { 
+      } else {
         return InterpretResult::Err(format!("Expected symbol, got {}", args[0]));
       }
     }),
@@ -109,6 +110,7 @@ pub fn get() -> HashMap<String, Value> {
       }
       return InterpretResult::Ok(Value::Nil);
     }),
+
     binary_op!(+),
     binary_op!(-),
     binary_op!(/),
